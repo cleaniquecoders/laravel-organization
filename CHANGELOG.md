@@ -1,3 +1,38 @@
 # Changelog
 
 All notable changes to `laravel-organization` will be documented in this file.
+
+## First Release - 2025-10-10
+
+### Laravel Organization
+
+Complete Laravel package for organization-based multi-tenancy with automatic data scoping, and role management.
+
+### ✨ What's Included
+
+- 🏢 Organization CRUD with UUID/slug support
+- 👥 Role-based membership (Admin/Member)
+- 🔒 Automatic data scoping for multi-tenancy
+- ⚙️ Comprehensive settings system with validation
+
+### 📦 Installation
+
+```bash
+composer require cleaniquecoders/laravel-organization
+php artisan vendor:publish --tag="laravel-organization-migrations"
+php artisan migrate
+
+```
+### 🚀 Quick Usage
+
+```php
+// Create org & add members
+$org = (new CreateNewOrganization())->handle($user);
+$org->addUser($member, OrganizationRole::MEMBER);
+
+// Auto-scope your models
+class Post extends Model {
+    use InteractsWithOrganization;
+}
+
+```
