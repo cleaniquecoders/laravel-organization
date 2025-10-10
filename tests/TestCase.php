@@ -30,6 +30,20 @@ class TestCase extends Orchestra
         ];
     }
 
+    /**
+     * Define environment setup.
+     * This runs before service providers are registered.
+     */
+    protected function defineEnvironment($app)
+    {
+        // Set encryption key for Livewire tests
+        $app['config']->set('app.key', 'base64:'.base64_encode(random_bytes(32)));
+
+        // Configure the User and Organization models BEFORE service provider registration
+        $app['config']->set('organization.user-model', User::class);
+        $app['config']->set('organization.organization-model', Organization::class);
+    }
+
     public function getEnvironmentSetUp($app)
     {
         config()->set('database.default', 'testing');
@@ -38,12 +52,6 @@ class TestCase extends Orchestra
             'database' => ':memory:',
             'prefix' => '',
         ]);
-
-        // Set encryption key for Livewire tests
-        config()->set('app.key', 'base64:'.base64_encode(random_bytes(32)));
-
-        // Configure the User model to use our test fixture
-        config()->set('organization.user-model', User::class);
 
         // Create users table for testing
         Schema::create('users', function (Blueprint $table) {
