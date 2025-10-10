@@ -20,7 +20,7 @@ class OrganizationFactory extends Factory
             'name' => $name,
             'slug' => Str::slug($name),
             'description' => $this->faker->sentence(),
-            'owner_id' => User::factory(),
+            'owner_id' => UserFactory::new(),
             'settings' => [
                 'timezone' => $this->faker->timezone(),
                 'locale' => $this->faker->randomElement(['en', 'es', 'fr', 'de']),

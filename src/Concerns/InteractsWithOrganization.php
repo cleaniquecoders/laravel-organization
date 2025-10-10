@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Concerns;
+namespace CleaniqueCoders\LaravelOrganization\Concerns;
 
 use CleaniqueCoders\LaravelOrganization\Scopes\OrganizationScope;
 use Illuminate\Database\Eloquent\Builder;

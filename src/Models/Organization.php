@@ -2,15 +2,15 @@
 
 namespace CleaniqueCoders\LaravelOrganization\Models;
 
-use App\Enums\OrganizationRole;
+use CleaniqueCoders\LaravelOrganization\Enums\OrganizationRole;
 use CleaniqueCoders\Traitify\Concerns\InteractsWithSlug;
 use CleaniqueCoders\Traitify\Concerns\InteractsWithUuid;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Foundation\Auth\User;
 
 class Organization extends Model
 {
@@ -25,6 +25,7 @@ class Organization extends Model
      * @var array<string>
      */
     protected $fillable = [
+        'uuid',
         'name',
         'slug',
         'description',
@@ -82,38 +83,6 @@ class Organization extends Model
     public function members(): BelongsToMany
     {
         return $this->activeUsers()->wherePivot('role', OrganizationRole::MEMBER->value);
-    }
-
-    /**
-     * Get customers of the organization.
-     */
-    public function customers(): BelongsToMany
-    {
-        return $this->activeUsers()->wherePivot('role', OrganizationRole::CUSTOMER->value);
-    }
-
-    /**
-     * Get all teams of the organization.
-     */
-    public function teams(): HasMany
-    {
-        return $this->hasMany(Team::class);
-    }
-
-    /**
-     * Get all applications of the organization.
-     */
-    public function applications(): HasMany
-    {
-        return $this->hasMany(Application::class);
-    }
-
-    /**
-     * Get all projects of the organization.
-     */
-    public function projects(): HasMany
-    {
-        return $this->hasMany(Project::class);
     }
 
     /**

@@ -85,6 +85,7 @@ class CreateNewOrganization
 
         // Create the organization record
         $organization = Organization::create([
+            'uuid' => Str::orderedUuid()->toString(),
             'name' => $organizationName,
             'slug' => Str::slug($organizationName),
             'description' => $organizationDescription,
