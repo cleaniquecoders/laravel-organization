@@ -20,6 +20,13 @@ class TestScopedModel extends Model
     protected static function booted()
     {
         static::addGlobalScope(new OrganizationScope);
+
+        // Auto-set organization_id on creating (similar to InteractsWithOrganization trait)
+        static::creating(function ($model) {
+            if (Auth::check() && Auth::user()->organization_id && ! $model->organization_id) {
+                $model->organization_id = Auth::user()->organization_id;
+            }
+        });
     }
 }
 
@@ -28,7 +35,7 @@ beforeEach(function () {
     Schema::create('test_scoped_models', function (Blueprint $table) {
         $table->id();
         $table->string('name');
-        $table->unsignedBigInteger('organization_id');
+        $table->unsignedBigInteger('organization_id')->nullable();
         $table->timestamps();
     });
 
@@ -128,7 +135,8 @@ describe('OrganizationScope Query Builder Extensions', function () {
         $query = TestScopedModel::withOrganization($this->org2->id);
         $sql = $query->toSql();
 
-        expect($sql)->toContain('test_scoped_models.organization_id');
+        // SQLite uses quoted identifiers, so check for the quoted version
+        expect($sql)->toContain('"test_scoped_models"."organization_id"');
     });
 });
 
@@ -183,6 +191,7 @@ describe('OrganizationScope Edge Cases', function () {
 
         // Switch user1 to org2
         $this->user1->organization_id = $this->org2->id;
+        $this->user1->save();
 
         // Clear any cached auth user data
         Auth::setUser($this->user1->fresh());

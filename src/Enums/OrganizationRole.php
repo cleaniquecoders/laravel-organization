@@ -15,8 +15,8 @@ enum OrganizationRole: string implements Contract
     public function label(): string
     {
         return match ($this) {
-            self::MEMBER => 'Member',
-            self::ADMINISTRATOR => 'Administrator',
+            self::MEMBER => __('Member'),
+            self::ADMINISTRATOR => __('Administrator'),
         };
     }
 

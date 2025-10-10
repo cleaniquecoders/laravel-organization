@@ -199,7 +199,8 @@ describe('InteractsWithOrganization Trait Integration', function () {
         expect(TestTraitModel::count())->toBe(1);
 
         // Switch user1 to org2
-        $this->user1->organization_id = $this->org1->id;
+        $this->user1->organization_id = $this->org2->id;
+        $this->user1->save();
 
         Auth::setUser($this->user1->fresh());
 
