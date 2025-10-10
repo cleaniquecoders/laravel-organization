@@ -2,6 +2,10 @@
 
 All notable changes to `laravel-organization` will be documented in this file.
 
+## Fix migration - 2025-10-10
+
+**Full Changelog**: https://github.com/cleaniquecoders/laravel-organization/compare/1.0.0...1.0.1
+
 ## First Release - 2025-10-10
 
 ### Laravel Organization
@@ -22,6 +26,7 @@ composer require cleaniquecoders/laravel-organization
 php artisan vendor:publish --tag="laravel-organization-migrations"
 php artisan migrate
 
+
 ```
 ### 🚀 Quick Usage
 
@@ -34,5 +39,6 @@ $org->addUser($member, OrganizationRole::MEMBER);
 class Post extends Model {
     use InteractsWithOrganization;
 }
+
 
 ```
