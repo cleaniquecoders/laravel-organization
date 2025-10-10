@@ -9,16 +9,23 @@ A comprehensive Laravel package for implementing organization-based tenancy in y
 
 ## Features
 
-- **Organization Management**: Create and manage organizations with owners, descriptions, and custom settings
+- **Organization Management**: Create and manage organizations with owners, descriptions, and comprehensive settings
 - **User Membership**: Flexible user-organization relationships with role-based access control
 - **Role System**: Built-in roles (Member, Administrator) with extensible enum-based architecture
 - **Automatic Data Scoping**: Global scope that automatically filters data by user's current organization
 - **UUID Support**: Built-in UUID generation for organizations with slug-based URLs
 - **Soft Deletes**: Safe deletion of organizations with data preservation
-- **Settings Management**: JSON-based settings storage for organization-specific configurations
-- **Command Line Tools**: Artisan commands for organization management
+- **Comprehensive Settings Management**: Extensive JSON-based settings with validation rules covering:
+  - Contact information and business details
+  - Application preferences (timezone, locale, currency)
+  - Feature toggles and UI/UX preferences
+  - Security settings and billing configuration
+  - Integration settings for external services
+- **Settings Validation**: Built-in validation rules ensure data integrity for all organization settings
+- **Command Line Tools**: Artisan commands for organization management and user assignment
 - **Laravel Actions Integration**: Clean action-based architecture using `lorisleiva/laravel-actions`
-- **Factory Support**: Built-in factories for testing and seeding
+- **Factory Support**: Built-in factories for testing and seeding with realistic data
+- **Trait-based Integration**: Easy integration with existing models using the `InteractsWithOrganization` trait
 
 ## Installation
 
@@ -46,12 +53,76 @@ This is the contents of the published config file:
 ```php
 <?php
 
-// config for CleaniqueCoders/LaravelOrganization
+/**
+ * Configuration file for CleaniqueCoders/LaravelOrganization
+ *
+ * This configuration file contains settings for the Laravel Organization package
+ * that manages organization-based tenancy in your Laravel application.
+ */
 
+use CleaniqueCoders\LaravelOrganization\Models\Organization;
 use Illuminate\Foundation\Auth\User;
 
 return [
+
+    /*
+    |--------------------------------------------------------------------------
+    | User Model
+    |--------------------------------------------------------------------------
+    |
+    | This option defines the User model class that will be used throughout
+    | the organization system. The model should extend Illuminate\Foundation\Auth\User
+    | or implement the necessary contracts for authentication.
+    |
+    */
+
     'user-model' => User::class,
+
+    /*
+    |--------------------------------------------------------------------------
+    | Organization Model
+    |--------------------------------------------------------------------------
+    |
+    | This option defines the Organization model class that will be used throughout
+    | the organization system. The model should extend CleaniqueCoders\LaravelOrganization\Models\Organization
+    | or implement the necessary contracts for organization management.
+    |
+    */
+
+    'organization-model' => Organization::class,
+
+    /*
+    |--------------------------------------------------------------------------
+    | Default Organization Settings
+    |--------------------------------------------------------------------------
+    |
+    | These are the default settings that will be applied to new organizations
+    | when they are created. Organizations can override these settings individually
+    | using the setSetting() method on the Organization model.
+    |
+    */
+
+    'default-settings' => [
+        // Contact information, address, social media, business info,
+        // application settings, feature toggles, UI preferences,
+        // security settings, billing, and integrations
+        // ... (see config/organization.php for full structure)
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Validation Rules
+    |--------------------------------------------------------------------------
+    |
+    | Define validation rules for organization settings to ensure data integrity.
+    |
+    */
+
+    'validation_rules' => [
+        // Validation rules for various settings
+        // ... (see config/organization.php for complete rules)
+    ],
+
 ];
 ```
 
@@ -60,6 +131,34 @@ Optionally, you can publish the views using
 ```bash
 php artisan vendor:publish --tag="laravel-organization-views"
 ```
+
+## Configuration
+
+The package configuration allows you to customize several aspects of the organization system:
+
+### Model Configuration
+
+- **`user-model`**: Specify your User model class (default: `Illuminate\Foundation\Auth\User`)
+- **`organization-model`**: Specify the Organization model class (default: `CleaniqueCoders\LaravelOrganization\Models\Organization`)
+
+### Default Organization Settings
+
+The `default-settings` configuration defines the initial settings for new organizations. These include:
+
+- **Contact Information**: Email, phone, fax, website
+- **Address Information**: Street, city, state, postal code, country
+- **Social Media Links**: Facebook, Twitter, LinkedIn, Instagram, YouTube, GitHub
+- **Business Information**: Industry, company size, founded year, tax ID, registration number
+- **Application Settings**: Timezone, locale, currency, date/time formats
+- **Feature Toggles**: Notifications, analytics, API access, custom branding, multi-language
+- **UI/UX Preferences**: Theme, sidebar state, layout, pagination
+- **Security Settings**: Two-factor requirements, password expiry, session timeout, allowed domains
+- **Billing & Subscription**: Plan, billing cycle, auto-renewal, billing email
+- **Integration Settings**: Email provider, storage provider, payment gateway, SMS provider
+
+### Validation Rules
+
+The package includes built-in validation rules for organization settings to ensure data integrity. You can extend or modify these rules as needed.
 
 ## Usage
 
@@ -208,19 +307,77 @@ if ($organization->userHasRole($user, OrganizationRole::ADMINISTRATOR)) {
 
 ### Organization Settings
 
-Store and retrieve organization-specific settings:
+Store and retrieve organization-specific settings using the comprehensive configuration structure:
 
 ```php
 $organization = Organization::find(1);
 
-// Set nested settings
+// Set contact information
+$organization->setSetting('contact.email', 'info@company.com');
+$organization->setSetting('contact.phone', '+1-234-567-8900');
+$organization->setSetting('contact.website', 'https://company.com');
+
+// Configure business information
+$organization->setSetting('business.industry', 'Technology');
+$organization->setSetting('business.company_size', '50-100');
+$organization->setSetting('business.founded_year', 2020);
+
+// Application preferences
+$organization->setSetting('app.timezone', 'America/New_York');
+$organization->setSetting('app.locale', 'en');
+$organization->setSetting('app.currency', 'USD');
+
+// Feature toggles
 $organization->setSetting('features.notifications', true);
+$organization->setSetting('features.api_access', true);
+$organization->setSetting('features.custom_branding', false);
+
+// UI/UX preferences
 $organization->setSetting('ui.theme', 'dark');
+$organization->setSetting('ui.items_per_page', 50);
+$organization->setSetting('ui.sidebar_collapsed', false);
+
+// Security settings
+$organization->setSetting('security.two_factor_required', true);
+$organization->setSetting('security.session_timeout_minutes', 60);
+
 $organization->save();
 
-// Get settings with defaults
-$notifications = $organization->getSetting('features.notifications', false);
+// Get settings with defaults from config
+$email = $organization->getSetting('contact.email');
 $theme = $organization->getSetting('ui.theme', 'light');
+$timezone = $organization->getSetting('app.timezone', 'UTC');
+
+// Check if specific settings exist
+if ($organization->hasSetting('features.api_access')) {
+    // Setting exists
+}
+
+// Apply default settings to existing organization
+$organization->applyDefaultSettings();
+
+// Reset all settings to defaults
+$organization->resetToDefaults();
+```
+
+### Settings Validation
+
+The package includes comprehensive validation for organization settings to ensure data integrity:
+
+```php
+$organization = Organization::find(1);
+
+// These will be automatically validated when saving
+$organization->setSetting('contact.email', 'invalid-email'); // Will fail validation
+$organization->setSetting('app.currency', 'INVALID'); // Must be 3-letter ISO code
+$organization->setSetting('ui.theme', 'purple'); // Must be 'light', 'dark', or 'auto'
+
+try {
+    $organization->save();
+} catch (\Illuminate\Validation\ValidationException $e) {
+    // Handle validation errors
+    $errors = $e->errors();
+}
 ```
 
 ## Testing
