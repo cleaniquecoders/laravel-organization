@@ -3,7 +3,6 @@
 namespace CleaniqueCoders\LaravelOrganization\Actions;
 
 use CleaniqueCoders\LaravelOrganization\Models\Organization;
-use Illuminate\Console\Command;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Support\Str;
 use Lorisleiva\Actions\Concerns\AsAction;
@@ -12,47 +11,9 @@ class CreateNewOrganization
 {
     use AsAction;
 
-    /**
-     * The Artisan command signature.
-     *
-     * Defines the command structure with:
-     * - {email}: Required argument for the user's email address
-     * - {--organization_name=}: Optional flag for custom organization name
-     * - {--description=}: Optional flag for custom organization description
-     */
-    public string $commandSignature = 'user:create-org {email} {--organization_name= : Optional name for the organization} {--description= : Optional description for the organization}';
+    public string $commandSignature = 'organization:create {email} {--organization_name=} {--description=}';
 
-    /**
-     * The Artisan command description shown in help output.
-     */
-    public string $commandDescription = 'Create organization for given user.';
-
-    /**
-     * Execute the action as an Artisan command.
-     *
-     * Command usage:
-     * - php artisan user:create-org user@example.com (creates default organization)
-     * - php artisan user:create-org user@example.com --organization_name="My Company" (creates additional organization)
-     * - php artisan user:create-org user@example.com --organization_name="My Company" --description="A great company" (creates additional organization with custom description)
-     *
-     * @param  Command  $command  The Artisan command instance
-     * @return void
-     */
-    public function asCommand(Command $command)
-    {
-        // Find the user by email or fail if not found
-        $user = User::where('email', $command->argument('email'))->firstOrFail();
-        $organizationName = $command->option('organization_name');
-        $description = $command->option('description');
-
-        // If organization_name option is not provided, create default organization
-        // If organization_name option is provided, create additional organization
-        $default = is_null($organizationName);
-
-        $organization = $this->handle($user, $default, $organizationName, $description);
-
-        $command->info("Organization '{$organization->name}' created successfully for user {$user->email}");
-    }
+    public string $commandDescription = 'Create a new organization for a user';
 
     /**
      * Handle the organization creation logic.
@@ -128,5 +89,24 @@ class CreateNewOrganization
         // User can create default organization if they don't have one
         // or if the referenced organization no longer exists
         return ! $user->organization_id || ! Organization::find($user->organization_id);
+    }
+
+    /**
+     * Execute the action as an Artisan command.
+     *
+     * @param  \Illuminate\Console\Command  $command
+     */
+    public function asCommand($command): void
+    {
+        $user = User::where('email', $command->argument('email'))->firstOrFail();
+
+        $this->handle(
+            $user,
+            true,
+            $command->option('organization_name'),
+            $command->option('description')
+        );
+
+        $command->info("Organization created successfully for {$user->email}");
     }
 }

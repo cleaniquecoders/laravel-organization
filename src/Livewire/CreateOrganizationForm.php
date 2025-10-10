@@ -121,6 +121,6 @@ class CreateOrganizationForm extends Component
 
     public function render()
     {
-        return view('laravel-organization::livewire.create-organization-form');
+        return view('org::livewire.create-organization-form');
     }
 }

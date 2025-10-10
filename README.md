@@ -22,7 +22,7 @@ A comprehensive Laravel package for implementing organization-based tenancy in y
 
 ```bash
 composer require cleaniquecoders/laravel-organization
-php artisan vendor:publish --tag="laravel-organization-migrations"
+php artisan vendor:publish --tag="org-migrations"
 php artisan migrate
 ```
 

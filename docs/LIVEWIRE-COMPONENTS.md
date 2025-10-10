@@ -233,7 +233,7 @@ All components use Tailwind CSS classes and can be customized by:
 1. **Publishing the views:**
 
 ```bash
-php artisan vendor:publish --tag="laravel-organization-views"
+php artisan vendor:publish --tag="org-views"
 ```
 
 2. **Modifying the published Blade templates** in `resources/views/vendor/laravel-organization/`
@@ -282,14 +282,14 @@ composer require cleaniquecoders/laravel-organization
 3. Publish and run migrations:
 
 ```bash
-php artisan vendor:publish --tag="laravel-organization-migrations"
+php artisan vendor:publish --tag="org-migrations"
 php artisan migrate
 ```
 
 4. Optionally publish views for customization:
 
 ```bash
-php artisan vendor:publish --tag="laravel-organization-views"
+php artisan vendor:publish --tag="org-views"
 ```
 
 ## Configuration

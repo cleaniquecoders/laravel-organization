@@ -2,7 +2,9 @@
 
 namespace CleaniqueCoders\LaravelOrganization;
 
-use CleaniqueCoders\LaravelOrganization\Actions\CreateNewOrganization;
+use CleaniqueCoders\LaravelOrganization\Console\Commands\CreateOrganizationCommand;
+use CleaniqueCoders\LaravelOrganization\Console\Commands\DeleteOrganizationCommand;
+use CleaniqueCoders\LaravelOrganization\Console\Commands\UpdateOrganizationCommand;
 use CleaniqueCoders\LaravelOrganization\Contracts\OrganizationContract;
 use CleaniqueCoders\LaravelOrganization\Contracts\OrganizationMembershipContract;
 use CleaniqueCoders\LaravelOrganization\Contracts\OrganizationOwnershipContract;
@@ -13,7 +15,6 @@ use CleaniqueCoders\LaravelOrganization\Livewire\OrganizationList;
 use CleaniqueCoders\LaravelOrganization\Livewire\OrganizationSwitcher;
 use CleaniqueCoders\LaravelOrganization\Livewire\OrganizationWidget;
 use Livewire\Livewire;
-use Lorisleiva\Actions\Facades\Actions;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 
@@ -27,10 +28,15 @@ class LaravelOrganizationServiceProvider extends PackageServiceProvider
          * More info: https://github.com/spatie/laravel-package-tools
          */
         $package
-            ->name('laravel-organization')
+            ->name('org')
             ->hasConfigFile()
             ->hasViews()
-            ->hasMigration('create_organization_table');
+            ->hasMigration('create_organization_table')
+            ->hasCommands([
+                CreateOrganizationCommand::class,
+                DeleteOrganizationCommand::class,
+                UpdateOrganizationCommand::class,
+            ]);
     }
 
     public function packageRegistered(): void
@@ -63,11 +69,6 @@ class LaravelOrganizationServiceProvider extends PackageServiceProvider
             Livewire::component('org::manage', ManageOrganization::class);
             Livewire::component('org::list', OrganizationList::class);
             Livewire::component('org::widget', OrganizationWidget::class);
-        }
-
-        // Register Actions as commands - only in console context
-        if ($this->app->runningInConsole()) {
-            Actions::registerCommandsForAction(CreateNewOrganization::class);
         }
     }
 }

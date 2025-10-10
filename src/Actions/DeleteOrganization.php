@@ -62,7 +62,7 @@ class DeleteOrganization
         }
 
         // Rule 3: Cannot delete current organization
-        if (property_exists($user, 'organization_id') &&
+        if (isset($user->organization_id) &&
             $user->organization_id === $organization->id) {
             throw new \Exception('Cannot delete your current organization. Please switch to another organization first.');
         }
@@ -105,7 +105,7 @@ class DeleteOrganization
         }
 
         // Check if current organization
-        if (property_exists($user, 'organization_id') &&
+        if (isset($user->organization_id) &&
             $user->organization_id === $organization->id) {
             return [
                 'can_delete' => false,

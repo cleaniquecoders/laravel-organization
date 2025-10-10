@@ -2,8 +2,8 @@
 
 namespace CleaniqueCoders\LaravelOrganization\Database\Factories;
 
+use CleaniqueCoders\LaravelOrganization\Tests\Fixtures\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Foundation\Auth\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 

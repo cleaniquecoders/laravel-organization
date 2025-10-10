@@ -4,9 +4,9 @@ namespace CleaniqueCoders\LaravelOrganization\Tests;
 
 use CleaniqueCoders\LaravelOrganization\LaravelOrganizationServiceProvider;
 use CleaniqueCoders\LaravelOrganization\Models\Organization;
+use CleaniqueCoders\LaravelOrganization\Tests\Fixtures\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Foundation\Auth\User;
 use Illuminate\Support\Facades\Schema;
 use Livewire\LivewireServiceProvider;
 use Orchestra\Testbench\TestCase as Orchestra;

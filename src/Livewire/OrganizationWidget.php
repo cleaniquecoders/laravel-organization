@@ -100,6 +100,6 @@ class OrganizationWidget extends Component
 
     public function render()
     {
-        return view('laravel-organization::livewire.organization-widget');
+        return view('org::livewire.organization-widget');
     }
 }

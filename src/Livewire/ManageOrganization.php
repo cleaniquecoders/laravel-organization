@@ -233,6 +233,6 @@ class ManageOrganization extends Component
 
     public function render()
     {
-        return view('laravel-organization::livewire.manage-organization');
+        return view('org::livewire.manage-organization');
     }
 }

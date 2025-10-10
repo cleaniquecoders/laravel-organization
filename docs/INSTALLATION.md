@@ -20,7 +20,7 @@ composer require cleaniquecoders/laravel-organization
 Publish the migration files and run them:
 
 ```bash
-php artisan vendor:publish --tag="laravel-organization-migrations"
+php artisan vendor:publish --tag="org-migrations"
 php artisan migrate
 ```
 
@@ -34,7 +34,7 @@ This will create the necessary database tables:
 Publish the configuration file to customize the package:
 
 ```bash
-php artisan vendor:publish --tag="laravel-organization-config"
+php artisan vendor:publish --tag="org-config"
 ```
 
 This creates `config/organization.php` with all available configuration options.
@@ -44,7 +44,7 @@ This creates `config/organization.php` with all available configuration options.
 If you plan to customize the package views:
 
 ```bash
-php artisan vendor:publish --tag="laravel-organization-views"
+php artisan vendor:publish --tag="org-views"
 ```
 
 ## Configuration

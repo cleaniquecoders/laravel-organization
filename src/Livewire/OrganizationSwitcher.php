@@ -106,6 +106,6 @@ class OrganizationSwitcher extends Component
 
     public function render()
     {
-        return view('laravel-organization::livewire.organization-switcher');
+        return view('org::livewire.organization-switcher');
     }
 }

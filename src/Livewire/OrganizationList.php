@@ -180,7 +180,7 @@ class OrganizationList extends Component
 
     public function render()
     {
-        return view('laravel-organization::livewire.organization-list', [
+        return view('org::livewire.organization-list', [
             'organizations' => $this->organizations,
         ]);
     }
