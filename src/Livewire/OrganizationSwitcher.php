@@ -16,6 +16,12 @@ class OrganizationSwitcher extends Component
 
     public ?string $errorMessage = null;
 
+    protected $listeners = [
+        'organization-created' => 'refreshOrganizations',
+        'organization-updated' => 'refreshOrganizations',
+        'organization-deleted' => 'handleOrganizationDeleted',
+    ];
+
     public function mount()
     {
         $user = Auth::user();
@@ -94,6 +100,40 @@ class OrganizationSwitcher extends Component
     public function closeDropdown()
     {
         $this->showDropdown = false;
+    }
+
+    /**
+     * Refresh the organizations list when an organization is created or updated.
+     */
+    public function refreshOrganizations()
+    {
+        $this->loadOrganizations();
+
+        // Refresh current organization if it was updated
+        if ($this->currentOrganization) {
+            $this->currentOrganization = Organization::find($this->currentOrganization->id);
+        }
+    }
+
+    /**
+     * Handle organization deletion event.
+     *
+     * @param int $organizationId The ID of the deleted organization
+     */
+    public function handleOrganizationDeleted($organizationId)
+    {
+        // If the deleted organization was the current one, clear it
+        if ($this->currentOrganization && $this->currentOrganization->id == $organizationId) {
+            $this->currentOrganization = null;
+
+            $user = Auth::user();
+            if ($user && method_exists($user, 'update')) {
+                $user->update(['organization_id' => null]);
+            }
+        }
+
+        // Refresh the organizations list
+        $this->loadOrganizations();
     }
 
     public function render()
