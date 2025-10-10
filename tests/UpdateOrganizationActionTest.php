@@ -182,3 +182,66 @@ it('provides validation messages method', function () {
         ->and($messages)->toHaveKey('name.required')
         ->and($messages)->toHaveKey('name.unique');
 });
+
+it('updates slug when organization name changes', function () {
+    $originalSlug = $this->organization->slug;
+
+    $result = UpdateOrganization::run(
+        $this->organization,
+        $this->user,
+        [
+            'name' => 'Completely New Name',
+            'description' => 'Updated description',
+        ]
+    );
+
+    expect($result->slug)->not->toBe($originalSlug)
+        ->and($result->slug)->toStartWith('completely-new-name-')
+        ->and(strlen($result->slug))->toBe(26); // 'completely-new-name' (19) + '-' (1) + 6 random chars
+});
+
+it('keeps slug unchanged when name does not change', function () {
+    $originalSlug = $this->organization->slug;
+    $originalName = $this->organization->name;
+
+    $result = UpdateOrganization::run(
+        $this->organization,
+        $this->user,
+        [
+            'name' => $originalName,
+            'description' => 'Updated description only',
+        ]
+    );
+
+    expect($result->slug)->toBe($originalSlug)
+        ->and($result->description)->toBe('Updated description only');
+});
+
+it('generates new slug with random suffix on name change', function () {
+    // Update name twice and verify slugs are different (due to random suffix)
+    $result1 = UpdateOrganization::run(
+        $this->organization,
+        $this->user,
+        [
+            'name' => 'Test Organization',
+            'description' => 'First update',
+        ]
+    );
+
+    $slug1 = $result1->slug;
+
+    $result2 = UpdateOrganization::run(
+        $result1,
+        $this->user,
+        [
+            'name' => 'Another Organization',
+            'description' => 'Second update',
+        ]
+    );
+
+    $slug2 = $result2->slug;
+
+    expect($slug1)->toStartWith('test-organization-')
+        ->and($slug2)->toStartWith('another-organization-')
+        ->and($slug1)->not->toBe($slug2);
+});

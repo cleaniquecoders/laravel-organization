@@ -5,6 +5,7 @@ namespace CleaniqueCoders\LaravelOrganization\Actions;
 use CleaniqueCoders\LaravelOrganization\Models\Organization;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Concerns\AsAction;
@@ -33,6 +34,11 @@ class UpdateOrganization
 
         // Validate the data
         $validated = $this->validateData($organization, $data);
+
+        // Update slug only if name has changed
+        if (isset($validated['name']) && $validated['name'] !== $organization->name) {
+            $validated['slug'] = Str::slug($validated['name']).'-'.Str::lower(Str::random(6));
+        }
 
         // Update the organization
         $organization->update($validated);

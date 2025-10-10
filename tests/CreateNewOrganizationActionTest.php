@@ -35,7 +35,8 @@ describe('CreateNewOrganization Action Basic Functionality', function () {
 
         expect($organization)->toBeInstanceOf(Organization::class)
             ->and($organization->name)->toBe("John's Organization")
-            ->and($organization->slug)->toBe(Str::slug("John's Organization"))
+            ->and($organization->slug)->toStartWith(Str::slug("John's Organization").'-')
+            ->and(strlen($organization->slug))->toBe(strlen(Str::slug("John's Organization")) + 7) // base + '-' + 6 chars
             ->and($organization->description)->toBe('Default organization for John Doe')
             ->and($organization->owner_id)->toBe($this->user->id);
 
@@ -52,7 +53,8 @@ describe('CreateNewOrganization Action Basic Functionality', function () {
 
         expect($additionalOrg)->toBeInstanceOf(Organization::class)
             ->and($additionalOrg->name)->toBe('My Company')
-            ->and($additionalOrg->slug)->toBe('my-company')
+            ->and($additionalOrg->slug)->toStartWith('my-company-')
+            ->and(strlen($additionalOrg->slug))->toBe(17) // 'my-company' (10) + '-' (1) + 6 random chars
             ->and($additionalOrg->description)->toBe('A great company')
             ->and($additionalOrg->owner_id)->toBe($this->user->id);
 
@@ -178,7 +180,8 @@ describe('CreateNewOrganization Action Edge Cases', function () {
         $organization = $this->action->handle($this->user, false, 'Company & Co.', 'Special chars');
 
         expect($organization->name)->toBe('Company & Co.')
-            ->and($organization->slug)->toBe('company-co');
+            ->and($organization->slug)->toStartWith('company-co-')
+            ->and(strlen($organization->slug))->toBe(17); // 'company-co' (10) + '-' (1) + 6 random chars
     });
 
     it('preserves null values correctly', function () {

@@ -67,6 +67,11 @@ class CreateNewOrganization
      */
     public function handle(User $user, bool $default = true, ?string $customName = null, ?string $customDescription = null): Organization
     {
+        // Validate that user doesn't already have a default organization
+        if ($default && ! $this->canCreateDefaultOrganization($user)) {
+            throw new \InvalidArgumentException('User already has a default organization');
+        }
+
         // Generate organization name: use custom name or default pattern
         $organizationName = $customName ?? (explode(' ', $user->name, 2)[0]."'s Organization");
 
@@ -79,7 +84,7 @@ class CreateNewOrganization
         $organization = Organization::create([
             'uuid' => Str::orderedUuid()->toString(),
             'name' => $organizationName,
-            'slug' => Str::slug($organizationName),
+            'slug' => Str::slug($organizationName).'-'.Str::lower(Str::random(6)),
             'description' => $organizationDescription,
             'owner_id' => $user->id,
         ]);

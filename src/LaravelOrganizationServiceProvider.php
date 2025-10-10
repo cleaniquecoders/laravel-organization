@@ -13,6 +13,7 @@ use CleaniqueCoders\LaravelOrganization\Livewire\OrganizationList;
 use CleaniqueCoders\LaravelOrganization\Livewire\OrganizationSwitcher;
 use CleaniqueCoders\LaravelOrganization\Livewire\OrganizationWidget;
 use Livewire\Livewire;
+use Lorisleiva\Actions\Facades\Actions;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 
@@ -29,8 +30,7 @@ class LaravelOrganizationServiceProvider extends PackageServiceProvider
             ->name('laravel-organization')
             ->hasConfigFile()
             ->hasViews()
-            ->hasMigration('create_organization_table')
-            ->hasCommand(CreateNewOrganization::class);
+            ->hasMigration('create_organization_table');
     }
 
     public function packageRegistered(): void
@@ -63,6 +63,11 @@ class LaravelOrganizationServiceProvider extends PackageServiceProvider
             Livewire::component('org::manage', ManageOrganization::class);
             Livewire::component('org::list', OrganizationList::class);
             Livewire::component('org::widget', OrganizationWidget::class);
+        }
+
+        // Register Actions as commands - only in console context
+        if ($this->app->runningInConsole()) {
+            Actions::registerCommandsForAction(CreateNewOrganization::class);
         }
     }
 }
