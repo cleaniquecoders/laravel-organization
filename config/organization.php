@@ -1,9 +1,208 @@
 <?php
 
-// config for CleaniqueCoders/LaravelOrganization
+/**
+ * Configuration file for CleaniqueCoders/LaravelOrganization
+ *
+ * This configuration file contains settings for the Laravel Organization package
+ * that manages organization-based tenancy in your Laravel application.
+ */
 
+use CleaniqueCoders\LaravelOrganization\Models\Organization;
 use Illuminate\Foundation\Auth\User;
 
 return [
+
+    /*
+    |--------------------------------------------------------------------------
+    | User Model
+    |--------------------------------------------------------------------------
+    |
+    | This option defines the User model class that will be used throughout
+    | the organization system. The model should extend Illuminate\Foundation\Auth\User
+    | or implement the necessary contracts for authentication.
+    |
+    | The User model will be used for:
+    | - Organization ownership relationships
+    | - Organization membership relationships
+    | - Authentication and authorization within organizations
+    |
+    | Default: Illuminate\Foundation\Auth\User::class
+    |
+    */
+
     'user-model' => User::class,
+
+    'org-model' => Organization::class,
+
+    /*
+    |--------------------------------------------------------------------------
+    | Default Organization Settings
+    |--------------------------------------------------------------------------
+    |
+    | These are the default settings that will be applied to new organizations
+    | when they are created. Organizations can override these settings individually
+    | using the setSetting() method on the Organization model.
+    |
+    | These settings are stored in the organization's 'settings' JSON column.
+    |
+    */
+
+    'default-settings' => [
+
+        /*
+        |----------------------------------------------------------------------
+        | Contact Information
+        |----------------------------------------------------------------------
+        */
+        'contact' => [
+            'email' => null,
+            'phone' => null,
+            'fax' => null,
+            'website' => null,
+        ],
+
+        /*
+        |----------------------------------------------------------------------
+        | Address Information
+        |----------------------------------------------------------------------
+        */
+        'address' => [
+            'street' => null,
+            'city' => null,
+            'state' => null,
+            'postal_code' => null,
+            'country' => null,
+        ],
+
+        /*
+        |----------------------------------------------------------------------
+        | Social Media Links
+        |----------------------------------------------------------------------
+        */
+        'social_media' => [
+            'facebook' => null,
+            'twitter' => null,
+            'linkedin' => null,
+            'instagram' => null,
+            'youtube' => null,
+            'github' => null,
+        ],
+
+        /*
+        |----------------------------------------------------------------------
+        | Business Information
+        |----------------------------------------------------------------------
+        */
+        'business' => [
+            'industry' => null,
+            'company_size' => null,
+            'founded_year' => null,
+            'tax_id' => null,
+            'registration_number' => null,
+        ],
+
+        /*
+        |----------------------------------------------------------------------
+        | Application Settings
+        |----------------------------------------------------------------------
+        */
+        'app' => [
+            'timezone' => 'UTC',
+            'locale' => 'en',
+            'currency' => 'USD',
+            'date_format' => 'Y-m-d',
+            'time_format' => 'H:i:s',
+        ],
+
+        /*
+        |----------------------------------------------------------------------
+        | Feature Toggles
+        |----------------------------------------------------------------------
+        */
+        'features' => [
+            'notifications' => true,
+            'analytics' => true,
+            'api_access' => false,
+            'custom_branding' => false,
+            'multi_language' => false,
+        ],
+
+        /*
+        |----------------------------------------------------------------------
+        | UI/UX Preferences
+        |----------------------------------------------------------------------
+        */
+        'ui' => [
+            'theme' => 'light', // light, dark, auto
+            'sidebar_collapsed' => false,
+            'layout' => 'default',
+            'items_per_page' => 25,
+        ],
+
+        /*
+        |----------------------------------------------------------------------
+        | Security Settings
+        |----------------------------------------------------------------------
+        */
+        'security' => [
+            'two_factor_required' => false,
+            'password_expires_days' => 90,
+            'session_timeout_minutes' => 120,
+            'allowed_domains' => [],
+        ],
+
+        /*
+        |----------------------------------------------------------------------
+        | Billing & Subscription
+        |----------------------------------------------------------------------
+        */
+        'billing' => [
+            'plan' => 'free',
+            'billing_cycle' => 'monthly', // monthly, yearly
+            'auto_renew' => true,
+            'billing_email' => null,
+        ],
+
+        /*
+        |----------------------------------------------------------------------
+        | Integration Settings
+        |----------------------------------------------------------------------
+        */
+        'integrations' => [
+            'email_provider' => 'default',
+            'storage_provider' => 'local',
+            'payment_gateway' => null,
+            'sms_provider' => null,
+        ],
+
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Validation Rules
+    |--------------------------------------------------------------------------
+    |
+    | Define validation rules for organization settings. These rules will be
+    | applied when updating organization settings to ensure data integrity.
+    |
+    */
+
+    'validation_rules' => [
+        'contact.email' => 'nullable|email',
+        'contact.phone' => 'nullable|string|max:20',
+        'contact.website' => 'nullable|url',
+        'address.postal_code' => 'nullable|string|max:20',
+        'address.country' => 'nullable|string|size:2', // ISO 2-letter country code
+        'app.timezone' => 'nullable|string', // Simplified timezone validation
+        'app.locale' => 'nullable|string|size:2',
+        'app.currency' => 'nullable|string|size:3', // ISO 3-letter currency code
+        'features.*' => 'boolean',
+        'ui.theme' => 'nullable|string|in:light,dark,auto',
+        'ui.items_per_page' => 'nullable|integer|min:5|max:100',
+        'security.password_expires_days' => 'nullable|integer|min:1|max:365',
+        'security.session_timeout_minutes' => 'nullable|integer|min:5|max:1440',
+        'billing.plan' => 'nullable|string',
+        'billing.billing_cycle' => 'nullable|string|in:monthly,yearly',
+    ],
+
 ];

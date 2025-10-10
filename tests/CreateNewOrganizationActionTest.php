@@ -5,11 +5,28 @@ use CleaniqueCoders\LaravelOrganization\Database\Factories\UserFactory;
 use CleaniqueCoders\LaravelOrganization\Models\Organization;
 use Illuminate\Console\Command;
 use Illuminate\Foundation\Auth\User;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Str;
 
 beforeEach(function () {
     $this->action = new CreateNewOrganization;
     $this->user = UserFactory::new()->create(['name' => 'John Doe']);
+
+    // Set up test configuration with default settings
+    Config::set('organization.default-settings', [
+        'contact' => [
+            'email' => null,
+            'phone' => null,
+        ],
+        'app' => [
+            'timezone' => 'UTC',
+            'locale' => 'en',
+        ],
+        'features' => [
+            'notifications' => true,
+            'analytics' => false,
+        ],
+    ]);
 });
 
 describe('CreateNewOrganization Action Basic Functionality', function () {
@@ -174,5 +191,45 @@ describe('CreateNewOrganization Action Edge Cases', function () {
         $organization = $this->action->handle($this->user, false, 'Test Company', '');
 
         expect($organization->description)->toBe('');
+    });
+});
+
+describe('CreateNewOrganization Action Default Settings', function () {
+    it('applies default settings when creating organization', function () {
+        $organization = $this->action->handle($this->user);
+
+        expect($organization->settings)->not()->toBeEmpty()
+            ->and($organization->getSetting('app.timezone'))->toBe('UTC')
+            ->and($organization->getSetting('app.locale'))->toBe('en')
+            ->and($organization->getSetting('features.notifications'))->toBeTrue()
+            ->and($organization->getSetting('features.analytics'))->toBeFalse()
+            ->and($organization->getSetting('contact.email'))->toBeNull();
+    });
+
+    it('creates organization with default settings via command', function () {
+        $command = Mockery::mock(Command::class);
+        $command->shouldReceive('argument')->with('email')->andReturn($this->user->email);
+        $command->shouldReceive('option')->with('organization_name')->andReturn(null);
+        $command->shouldReceive('option')->with('description')->andReturn(null);
+        $command->shouldReceive('info')->once();
+
+        $this->action->asCommand($command);
+
+        $organization = Organization::where('owner_id', $this->user->id)->first();
+
+        expect($organization->getSetting('app.timezone'))->toBe('UTC')
+            ->and($organization->getSetting('features.notifications'))->toBeTrue();
+    });
+
+    it('creates additional organization with default settings', function () {
+        // Create default organization first
+        $defaultOrg = $this->action->handle($this->user);
+
+        // Create additional organization
+        $additionalOrg = $this->action->handle($this->user, false, 'My Company');
+
+        expect($additionalOrg->getSetting('app.timezone'))->toBe('UTC')
+            ->and($additionalOrg->getSetting('features.notifications'))->toBeTrue()
+            ->and($defaultOrg->getSetting('app.timezone'))->toBe('UTC');
     });
 });

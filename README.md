@@ -63,9 +63,164 @@ php artisan vendor:publish --tag="laravel-organization-views"
 
 ## Usage
 
+### Basic Organization Creation
+
+Create organizations programmatically using the `CreateNewOrganization` action:
+
 ```php
-$laravelOrganization = new CleaniqueCoders\LaravelOrganization();
-echo $laravelOrganization->echoPhrase('Hello, CleaniqueCoders!');
+use CleaniqueCoders\LaravelOrganization\Actions\CreateNewOrganization;
+use App\Models\User;
+
+$user = User::find(1);
+$action = new CreateNewOrganization();
+
+// Create a default organization for the user
+$organization = $action->handle($user);
+
+// Create an additional organization with custom name and description
+$customOrg = $action->handle(
+    user: $user,
+    default: false,
+    customName: 'My Company',
+    customDescription: 'A great company'
+);
+```
+
+### Using Artisan Commands
+
+Create organizations via command line:
+
+```bash
+# Create default organization for user
+php artisan user:create-org user@example.com
+
+# Create additional organization with custom name
+php artisan user:create-org user@example.com --organization_name="My Company"
+
+# Create with custom name and description
+php artisan user:create-org user@example.com --organization_name="My Company" --description="A great company"
+```
+
+### Organization Model Usage
+
+Work with organizations and their members:
+
+```php
+use CleaniqueCoders\LaravelOrganization\Models\Organization;
+use CleaniqueCoders\LaravelOrganization\Enums\OrganizationRole;
+
+$organization = Organization::find(1);
+
+// Check ownership
+if ($organization->isOwnedBy($user)) {
+    // User owns this organization
+}
+
+// Add users to organization
+$organization->addUser($user, OrganizationRole::ADMINISTRATOR);
+$organization->addUser($anotherUser, OrganizationRole::MEMBER);
+
+// Check membership
+if ($organization->hasMember($user)) {
+    // User is a member
+}
+
+// Get organization members
+$administrators = $organization->administrators;
+$members = $organization->members;
+$allActiveMembers = $organization->allMembers();
+
+// Update user role
+$organization->updateUserRole($user, OrganizationRole::ADMINISTRATOR);
+
+// Remove user from organization
+$organization->removeUser($user);
+
+// Manage settings
+$organization->setSetting('timezone', 'UTC');
+$timezone = $organization->getSetting('timezone', 'UTC');
+```
+
+### Automatic Data Scoping
+
+The package automatically applies organization scoping to the default Laravel User model. This means:
+
+- Users are automatically scoped to the authenticated user's organization
+- When creating new users, the `organization_id` is automatically set
+- You can bypass scoping when needed using the provided scope methods
+
+```php
+use App\Models\User;
+
+// Only users from authenticated user's organization (automatic)
+$users = User::all();
+
+// Users from all organizations
+$allUsers = User::allOrganizations()->get();
+
+// Users from specific organization
+$orgUsers = User::forOrganization(5)->get();
+```
+
+#### Adding Scoping to Your Own Models
+
+You can also add the `InteractsWithOrganization` trait to your own models for automatic data scoping:
+
+```php
+use CleaniqueCoders\LaravelOrganization\Concerns\InteractsWithOrganization;
+use Illuminate\Database\Eloquent\Model;
+
+class Post extends Model
+{
+    use InteractsWithOrganization;
+
+    protected $fillable = ['title', 'content', 'organization_id'];
+}
+```
+
+With this trait applied to your models:
+
+- Models are automatically scoped to the authenticated user's organization
+- The `organization_id` is automatically set when creating new records
+- You can bypass scoping when needed using the same methods as shown above
+
+### Working with Roles
+
+Use the `OrganizationRole` enum for type-safe role management:
+
+```php
+use CleaniqueCoders\LaravelOrganization\Enums\OrganizationRole;
+
+// Check role capabilities
+if ($role->isAdmin()) {
+    // User has admin privileges
+}
+
+// Get role information
+$label = OrganizationRole::ADMINISTRATOR->label(); // "Administrator"
+$description = OrganizationRole::MEMBER->description(); // "Regular member with basic access..."
+
+// Check user's role in organization
+if ($organization->userHasRole($user, OrganizationRole::ADMINISTRATOR)) {
+    // User is an administrator
+}
+```
+
+### Organization Settings
+
+Store and retrieve organization-specific settings:
+
+```php
+$organization = Organization::find(1);
+
+// Set nested settings
+$organization->setSetting('features.notifications', true);
+$organization->setSetting('ui.theme', 'dark');
+$organization->save();
+
+// Get settings with defaults
+$notifications = $organization->getSetting('features.notifications', false);
+$theme = $organization->getSetting('ui.theme', 'light');
 ```
 
 ## Testing

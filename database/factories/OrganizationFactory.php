@@ -57,8 +57,10 @@ class OrganizationFactory extends Factory
      */
     public function withoutSettings(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'settings' => null,
-        ]);
+        return $this->afterCreating(function (Organization $organization) {
+            // Force settings to null after creation (bypassing defaults)
+            // Use updateQuietly to avoid triggering events/validation
+            $organization->updateQuietly(['settings' => null]);
+        });
     }
 }

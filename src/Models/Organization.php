@@ -2,6 +2,7 @@
 
 namespace CleaniqueCoders\LaravelOrganization\Models;
 
+use CleaniqueCoders\LaravelOrganization\Concerns\InteractsWithOrganizationSettings;
 use CleaniqueCoders\LaravelOrganization\Enums\OrganizationRole;
 use CleaniqueCoders\Traitify\Concerns\InteractsWithSlug;
 use CleaniqueCoders\Traitify\Concerns\InteractsWithUuid;
@@ -15,6 +16,7 @@ use Illuminate\Foundation\Auth\User;
 class Organization extends Model
 {
     use HasFactory;
+    use InteractsWithOrganizationSettings;
     use InteractsWithSlug;
     use InteractsWithUuid;
     use SoftDeletes;
@@ -42,6 +44,31 @@ class Organization extends Model
         'settings' => 'array',
         'deleted_at' => 'datetime',
     ];
+
+    /**
+     * Boot the model.
+     */
+    protected static function booted(): void
+    {
+        // We'll handle validation in the save method instead of events
+        // to avoid potential conflicts with multiple trait boot methods
+    }
+
+    /**
+     * Override save to apply defaults and validate.
+     */
+    public function save(array $options = []): bool
+    {
+        // Apply defaults for new models
+        if (! $this->exists) {
+            $this->applyDefaultSettings();
+        }
+
+        // Always validate before saving
+        $this->validateSettings();
+
+        return parent::save($options);
+    }
 
     /**
      * Get the owner of the organization.
@@ -176,23 +203,5 @@ class Organization extends Model
     public function userHasRole(User $user, OrganizationRole $role): bool
     {
         return $this->getUserRole($user) === $role;
-    }
-
-    /**
-     * Get a setting value.
-     */
-    public function getSetting(string $key, $default = null)
-    {
-        return data_get($this->settings, $key, $default);
-    }
-
-    /**
-     * Set a setting value.
-     */
-    public function setSetting(string $key, $value): void
-    {
-        $settings = $this->settings ?? [];
-        data_set($settings, $key, $value);
-        $this->settings = $settings;
     }
 }

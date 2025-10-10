@@ -3,9 +3,9 @@
 use CleaniqueCoders\LaravelOrganization\Concerns\InteractsWithOrganization;
 use CleaniqueCoders\LaravelOrganization\Database\Factories\OrganizationFactory;
 use CleaniqueCoders\LaravelOrganization\Database\Factories\UserFactory;
+use CleaniqueCoders\LaravelOrganization\Models\Organization;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Foundation\Auth\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
 
@@ -97,7 +97,7 @@ describe('InteractsWithOrganization Trait Relationships', function () {
     it('defines organization relationship', function () {
         $record = TestTraitModel::withoutGlobalScopes()->create(['name' => 'Test', 'organization_id' => $this->org1->id]);
 
-        expect($record->organization)->toBeInstanceOf(User::class);
+        expect($record->organization)->toBeInstanceOf(Organization::class);
         // Note: This will fail due to config mismatch, but tests the relationship exists
     });
 });
