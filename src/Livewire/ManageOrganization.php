@@ -26,6 +26,8 @@ class ManageOrganization extends Component
     // UI states
     public bool $showDeleteConfirmation = false;
 
+    public ?string $errorMessage = null;
+
     protected function rules()
     {
         $rules = [
@@ -63,8 +65,10 @@ class ManageOrganization extends Component
         $organizationId = $data['organizationId'] ?? null;
         $mode = $data['mode'] ?? 'edit';
 
+        $this->errorMessage = null;
+
         if (! $organizationId) {
-            session()->flash('error', 'Organization ID is required.');
+            $this->errorMessage = 'Organization ID is required.';
 
             return;
         }
@@ -72,7 +76,7 @@ class ManageOrganization extends Component
         $this->organization = Organization::find($organizationId);
 
         if (! $this->organization) {
-            session()->flash('error', 'Organization not found.');
+            $this->errorMessage = 'Organization not found.';
 
             return;
         }
@@ -80,7 +84,7 @@ class ManageOrganization extends Component
         // Check if user has permission to manage this organization
         $user = Auth::user();
         if (! $this->organization->isOwnedBy($user) && ! $this->isUserAdministrator($user)) {
-            session()->flash('error', 'You do not have permission to manage this organization.');
+            $this->errorMessage = 'You do not have permission to manage this organization.';
 
             return;
         }
@@ -103,7 +107,7 @@ class ManageOrganization extends Component
     {
         $this->showModal = false;
         $this->showDeleteConfirmation = false;
-        $this->reset(['name', 'description', 'confirmationName', 'mode']);
+        $this->reset(['name', 'description', 'confirmationName', 'mode', 'errorMessage']);
         $this->organization = null;
         $this->resetValidation();
     }
@@ -120,17 +124,24 @@ class ManageOrganization extends Component
 
     public function updateOrganization()
     {
-        $this->validate();
+        $this->errorMessage = null;
+
+        try {
+            $this->validate();
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $this->errorMessage = 'Please correct the validation errors below.';
+            throw $e;
+        }
 
         if (! $this->organization) {
-            session()->flash('error', 'Organization not found.');
+            $this->errorMessage = 'Organization not found.';
 
             return;
         }
 
         $user = Auth::user();
         if (! $this->organization->isOwnedBy($user) && ! $this->isUserAdministrator($user)) {
-            session()->flash('error', 'You do not have permission to update this organization.');
+            $this->errorMessage = 'You do not have permission to update this organization.';
 
             return;
         }
@@ -152,7 +163,7 @@ class ManageOrganization extends Component
             return redirect()->to(request()->url());
 
         } catch (\Exception $e) {
-            session()->flash('error', 'Failed to update organization: '.$e->getMessage());
+            $this->errorMessage = 'Failed to update organization: '.$e->getMessage();
         }
     }
 
@@ -170,8 +181,10 @@ class ManageOrganization extends Component
 
     public function deleteOrganization()
     {
+        $this->errorMessage = null;
+
         if (! $this->organization) {
-            session()->flash('error', 'Organization not found.');
+            $this->errorMessage = 'Organization not found.';
 
             return;
         }
@@ -179,13 +192,14 @@ class ManageOrganization extends Component
         // Validate confirmation name
         if ($this->confirmationName !== $this->organization->name) {
             $this->addError('confirmationName', 'Organization name does not match.');
+            $this->errorMessage = 'Organization name does not match.';
 
             return;
         }
 
         $user = Auth::user();
         if (! $this->organization->isOwnedBy($user)) {
-            session()->flash('error', 'Only the organization owner can delete the organization.');
+            $this->errorMessage = 'Only the organization owner can delete the organization.';
 
             return;
         }
@@ -196,7 +210,7 @@ class ManageOrganization extends Component
             ->count();
 
         if ($activeMembersCount > 0) {
-            session()->flash('error', 'Cannot delete organization with active members. Remove all members first.');
+            $this->errorMessage = 'Cannot delete organization with active members. Remove all members first.';
 
             return;
         }
@@ -206,7 +220,8 @@ class ManageOrganization extends Component
 
             // If this is the user's current organization, clear it
             if (property_exists($user, 'organization_id') &&
-                $user->organization_id === $this->organization->id) {
+                $user->organization_id === $this->organization->id &&
+                method_exists($user, 'update')) {
                 $user->update(['organization_id' => null]);
             }
 
@@ -225,7 +240,7 @@ class ManageOrganization extends Component
             return redirect()->to(request()->url());
 
         } catch (\Exception $e) {
-            session()->flash('error', 'Failed to delete organization: '.$e->getMessage());
+            $this->errorMessage = 'Failed to delete organization: '.$e->getMessage();
         }
     }
 

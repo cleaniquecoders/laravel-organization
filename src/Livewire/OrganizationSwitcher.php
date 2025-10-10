@@ -15,6 +15,8 @@ class OrganizationSwitcher extends Component
 
     public bool $showDropdown = false;
 
+    public ?string $errorMessage = null;
+
     public function mount()
     {
         $user = Auth::user();
@@ -50,39 +52,46 @@ class OrganizationSwitcher extends Component
 
     public function switchOrganization($organizationId)
     {
-        $organization = Organization::find($organizationId);
+        $this->errorMessage = null;
 
-        if (! $organization) {
-            session()->flash('error', 'Organization not found.');
+        try {
+            $organization = Organization::find($organizationId);
 
-            return;
+            if (! $organization) {
+                $this->errorMessage = 'Organization not found.';
+
+                return;
+            }
+
+            $user = Auth::user();
+
+            // Check if user has access to this organization
+            if (! $organization->isOwnedBy($user) && ! $organization->hasActiveMember($user)) {
+                $this->errorMessage = 'You do not have access to this organization.';
+
+                return;
+            }
+
+            // Update user's current organization
+            if (method_exists($user, 'update')) {
+                $user->update(['organization_id' => $organization->id]);
+            }
+
+            $this->currentOrganization = $organization;
+            $this->showDropdown = false;
+
+            // Emit event for other components to listen to
+            $this->dispatch('organization-switched', organizationId: $organization->id);
+
+            // Show success message
+            session()->flash('message', "Switched to {$organization->name}");
+
+            // Optionally redirect to refresh the page
+            return redirect()->to(request()->url());
+
+        } catch (\Exception $e) {
+            $this->errorMessage = 'Failed to switch organization: '.$e->getMessage();
         }
-
-        $user = Auth::user();
-
-        // Check if user has access to this organization
-        if (! $organization->isOwnedBy($user) && ! $organization->hasActiveMember($user)) {
-            session()->flash('error', 'You do not have access to this organization.');
-
-            return;
-        }
-
-        // Update user's current organization
-        if (method_exists($user, 'update') && $user->getTable()) {
-            $user->update(['organization_id' => $organization->id]);
-        }
-
-        $this->currentOrganization = $organization;
-        $this->showDropdown = false;
-
-        // Emit event for other components to listen to
-        $this->dispatch('organization-switched', organizationId: $organization->id);
-
-        // Show success message
-        session()->flash('message', "Switched to {$organization->name}");
-
-        // Optionally redirect to refresh the page
-        return redirect()->to(request()->url());
     }
 
     public function toggleDropdown()

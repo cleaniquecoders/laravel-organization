@@ -4,6 +4,7 @@ namespace CleaniqueCoders\LaravelOrganization\Livewire;
 
 use CleaniqueCoders\LaravelOrganization\Actions\CreateNewOrganization;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
 
@@ -16,6 +17,8 @@ class CreateOrganizationForm extends Component
     public string $description = '';
 
     public bool $setAsCurrent = false;
+
+    public ?string $errorMessage = null;
 
     protected function rules()
     {
@@ -44,13 +47,14 @@ class CreateOrganizationForm extends Component
     public function showModal()
     {
         $this->showModal = true;
+        $this->errorMessage = null;
         $this->resetValidation();
     }
 
     public function closeModal()
     {
         $this->showModal = false;
-        $this->reset(['name', 'description', 'setAsCurrent']);
+        $this->reset(['name', 'description', 'setAsCurrent', 'errorMessage']);
         $this->resetValidation();
     }
 
@@ -66,12 +70,19 @@ class CreateOrganizationForm extends Component
 
     public function createOrganization()
     {
-        $this->validate();
+        $this->errorMessage = null;
+
+        try {
+            $this->validate();
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $this->errorMessage = 'Please correct the validation errors below.';
+            throw $e;
+        }
 
         $user = Auth::user();
 
         if (! $user) {
-            session()->flash('error', 'You must be logged in to create an organization.');
+            $this->errorMessage = 'You must be logged in to create an organization.';
 
             return;
         }
@@ -87,7 +98,7 @@ class CreateOrganizationForm extends Component
             );
 
             // Reset form
-            $this->reset(['name', 'description', 'setAsCurrent']);
+            $this->reset(['name', 'description', 'setAsCurrent', 'errorMessage']);
             $this->showModal = false;
 
             // Emit events
@@ -100,7 +111,11 @@ class CreateOrganizationForm extends Component
             return redirect()->to(request()->url());
 
         } catch (\Exception $e) {
-            session()->flash('error', 'Failed to create organization: '.$e->getMessage());
+            $this->errorMessage = 'Failed to create organization: '.$e->getMessage();
+            Log::error('Failed to create organization', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
         }
     }
 
