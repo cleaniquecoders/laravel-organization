@@ -6,6 +6,7 @@ use CleaniqueCoders\LaravelOrganization\Actions\CreateNewOrganization;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
 
@@ -88,7 +89,30 @@ class CreateOrganization extends Component
             return;
         }
 
+        // Apply rate limiting: max 5 organizations per hour per user
+        $rateLimitKey = 'create-organization:'.$user->getAuthIdentifier();
+        $maxAttempts = config('organization.rate_limits.create_organization.max_attempts', 5);
+        $decayMinutes = config('organization.rate_limits.create_organization.decay_minutes', 60);
+
+        if (RateLimiter::tooManyAttempts($rateLimitKey, $maxAttempts)) {
+            $seconds = RateLimiter::availableIn($rateLimitKey);
+            $minutes = ceil($seconds / 60);
+
+            $this->errorMessage = __('Too many organization creation attempts. Please try again in :minutes minutes.', [
+                'minutes' => $minutes,
+            ]);
+
+            Log::warning('Rate limit exceeded for organization creation', [
+                'user_id' => $user->getAuthIdentifier(),
+                'available_in_seconds' => $seconds,
+            ]);
+
+            return;
+        }
+
         try {
+            // Increment rate limiter
+            RateLimiter::hit($rateLimitKey, $decayMinutes * 60);
             // Create organization using the action
             // Pass setAsCurrent as the 'default' parameter to determine if this should be the user's default org
             $organization = CreateNewOrganization::run(

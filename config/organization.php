@@ -232,4 +232,74 @@ return [
         'billing.billing_cycle' => 'nullable|string|in:monthly,yearly',
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Rate Limits
+    |--------------------------------------------------------------------------
+    |
+    | Configure rate limiting for organization operations to prevent abuse.
+    | Each operation can have its own rate limit configuration.
+    |
+    */
+
+    'rate_limits' => [
+
+        /*
+        |----------------------------------------------------------------------
+        | Organization Creation
+        |----------------------------------------------------------------------
+        |
+        | Limit how many organizations a user can create within a time period.
+        | This helps prevent spam and abuse of the organization system.
+        |
+        | max_attempts: Maximum number of organizations per time period
+        | decay_minutes: Time period in minutes before the counter resets
+        |
+        */
+        'create_organization' => [
+            'max_attempts' => 5,        // Max 5 organizations
+            'decay_minutes' => 60,      // Per hour (60 minutes)
+        ],
+
+        /*
+        |----------------------------------------------------------------------
+        | Organization Updates
+        |----------------------------------------------------------------------
+        |
+        | Limit how frequently an organization can be updated.
+        |
+        */
+        'update_organization' => [
+            'max_attempts' => 20,       // Max 20 updates
+            'decay_minutes' => 60,      // Per hour
+        ],
+
+        /*
+        |----------------------------------------------------------------------
+        | Organization Deletion
+        |----------------------------------------------------------------------
+        |
+        | Limit deletion attempts to prevent accidental mass deletions.
+        |
+        */
+        'delete_organization' => [
+            'max_attempts' => 3,        // Max 3 deletions
+            'decay_minutes' => 60,      // Per hour
+        ],
+
+        /*
+        |----------------------------------------------------------------------
+        | Organization Switching
+        |----------------------------------------------------------------------
+        |
+        | Limit how frequently a user can switch between organizations.
+        |
+        */
+        'switch_organization' => [
+            'max_attempts' => 100,      // Max 100 switches
+            'decay_minutes' => 60,      // Per hour
+        ],
+
+    ],
+
 ];
