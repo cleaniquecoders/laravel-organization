@@ -1,0 +1,10 @@
+parameters:
+    ignoreErrors:
+        -
+            message: '#^Trait CleaniqueCoders\\LaravelOrganization\\Concerns\\InteractsWithOrganization is used zero times and is not analysed\.$#'
+            path: src/Concerns/InteractsWithOrganization.php
+            count: 1
+        -
+            message: '#^Trait CleaniqueCoders\\LaravelOrganization\\Concerns\\InteractsWithUserOrganization is used zero times and is not analysed\.$#'
+            path: src/Concerns/InteractsWithUserOrganization.php
+            count: 1

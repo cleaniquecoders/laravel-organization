@@ -33,13 +33,17 @@ class CreateNewOrganization
             throw new \InvalidArgumentException('User already has a default organization');
         }
 
+        // Get user name safely (supports models with name attribute)
+        /** @var string $userName */
+        $userName = $user->getAttribute('name') ?? $user->getAttributeValue('email') ?? 'User';
+
         // Generate organization name: use custom name or default pattern
-        $organizationName = $customName ?? (explode(' ', $user->name, 2)[0]."'s Organization");
+        $organizationName = $customName ?? (explode(' ', $userName, 2)[0]."'s Organization");
 
         // Generate organization description: use custom description or default pattern
         $organizationDescription = $customDescription ?? ($customName
-            ? "Organization for {$user->name}"
-            : "Default organization for {$user->name}");
+            ? "Organization for {$userName}"
+            : "Default organization for {$userName}");
 
         // Create the organization record
         $organization = Organization::create([
@@ -52,7 +56,7 @@ class CreateNewOrganization
 
         // Set as user's default organization if this is a default organization
         if ($default) {
-            $user->organization_id = $organization->id;
+            $user->setAttribute('organization_id', $organization->id);
             $user->save();
         }
 
@@ -88,7 +92,9 @@ class CreateNewOrganization
     {
         // User can create default organization if they don't have one
         // or if the referenced organization no longer exists
-        return ! $user->organization_id || ! Organization::find($user->organization_id);
+        $organizationId = $user->getAttribute('organization_id');
+
+        return ! $organizationId || ! Organization::find($organizationId);
     }
 
     /**
@@ -107,6 +113,7 @@ class CreateNewOrganization
             $command->option('description')
         );
 
-        $command->info("Organization created successfully for {$user->email}");
+        $userEmail = $user->getAttribute('email');
+        $command->info("Organization created successfully for {$userEmail}");
     }
 }

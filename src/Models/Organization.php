@@ -17,6 +17,23 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User;
 
+/**
+ * @property int $id
+ * @property string $uuid
+ * @property int $owner_id
+ * @property string $name
+ * @property string $slug
+ * @property string|null $description
+ * @property array<string, mixed>|null $settings
+ * @property \Illuminate\Support\Carbon|null $deleted_at
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \Illuminate\Foundation\Auth\User $owner
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \Illuminate\Foundation\Auth\User> $users
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \Illuminate\Foundation\Auth\User> $activeUsers
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \Illuminate\Foundation\Auth\User> $administrators
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \Illuminate\Foundation\Auth\User> $members
+ */
 class Organization extends Model implements OrganizationContract, OrganizationMembershipContract, OrganizationOwnershipContract, OrganizationSettingsContract
 {
     use HasFactory;
@@ -28,7 +45,7 @@ class Organization extends Model implements OrganizationContract, OrganizationMe
     /**
      * The attributes that are mass assignable.
      *
-     * @var array<string>
+     * @var list<string>
      */
     protected $fillable = [
         'uuid',
@@ -42,7 +59,7 @@ class Organization extends Model implements OrganizationContract, OrganizationMe
     /**
      * The attributes that should be cast.
      *
-     * @var array
+     * @var array<string, string>
      */
     protected $casts = [
         'settings' => 'array',
@@ -198,7 +215,13 @@ class Organization extends Model implements OrganizationContract, OrganizationMe
     {
         $pivot = $this->users()->where('user_id', $user->id)->first()?->pivot;
 
-        return $pivot?->role ? OrganizationRole::from($pivot->role) : null;
+        if (! $pivot) {
+            return null;
+        }
+
+        $role = $pivot->getAttribute('role');
+
+        return $role ? OrganizationRole::from($role) : null;
     }
 
     /**

@@ -7,6 +7,9 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Support\Str;
 
+/**
+ * @extends Factory<Organization>
+ */
 class OrganizationFactory extends Factory
 {
     protected $model = Organization::class;

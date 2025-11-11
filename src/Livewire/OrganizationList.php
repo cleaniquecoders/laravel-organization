@@ -8,6 +8,9 @@ use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\WithPagination;
 
+/**
+ * @property \Illuminate\Contracts\Pagination\LengthAwarePaginator $organizations
+ */
 class OrganizationList extends Component
 {
     use WithPagination;
@@ -101,7 +104,7 @@ class OrganizationList extends Component
                 return;
             }
 
-            $user->organization_id = $organization->id;
+            $user->setAttribute('organization_id', $organization->id);
             $user->save();
 
             // Emit event for other components to listen to

@@ -39,7 +39,8 @@ class CreateOrganizationCommand extends Command
 
             $organization = $action->handle($user, $default, $organizationName, $description);
 
-            $this->info("Organization '{$organization->name}' created successfully for user {$user->email}");
+            $userEmail = $user->getAttribute('email');
+            $this->info("Organization '{$organization->name}' created successfully for user {$userEmail}");
 
             return self::SUCCESS;
         } catch (\Exception $e) {

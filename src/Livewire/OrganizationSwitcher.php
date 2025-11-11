@@ -32,8 +32,11 @@ class OrganizationSwitcher extends Component
         $this->user = $user ?? Auth::user();
 
         // Load current organization if user has one set
-        if ($this->user && $this->user->organization_id) {
-            $this->currentOrganization = Organization::find($this->user->organization_id);
+        if ($this->user) {
+            $organizationId = $this->user instanceof Model ? $this->user->getAttribute('organization_id') : null;
+            if ($organizationId) {
+                $this->currentOrganization = Organization::find($organizationId);
+            }
         }
 
         $this->loadOrganizations();
@@ -47,13 +50,28 @@ class OrganizationSwitcher extends Component
             return;
         }
 
+        $userId = $this->user instanceof Model ? $this->user->getKey() : null;
+
+        if (! $userId) {
+            $this->organizations = [];
+
+            return;
+        }
+
         // Get organizations where user is owner or member
-        $ownedOrganizations = Organization::where('owner_id', $this->user->id)->get();
+        $ownedOrganizations = Organization::where('owner_id', $userId)->get();
 
         // Get organizations where user is a member (if the relationship exists)
         $memberOrganizations = collect([]);
-        if (method_exists($this->user, 'organizations')) {
-            $memberOrganizations = $this->user->organizations;
+        if ($this->user instanceof Model) {
+            try {
+                // Attempt to access organizations relationship if it exists
+                $memberOrganizations = $this->user->relationLoaded('organizations')
+                    ? $this->user->getRelation('organizations')
+                    : $this->user->organizations()->get();
+            } catch (\BadMethodCallException $e) {
+                // Relationship doesn't exist, keep empty collection
+            }
         }
 
         $this->organizations = $ownedOrganizations->merge($memberOrganizations)->unique('id')->all();
@@ -72,16 +90,18 @@ class OrganizationSwitcher extends Component
                 return;
             }
 
-            // Check if user has access to this organization
-            if (! $organization->isOwnedBy($this->user) && ! $organization->hasActiveMember($this->user)) {
-                $this->errorMessage = __('You do not have access to this organization.');
+            // Check if user has access to this organization (cast to User for type safety)
+            if ($this->user instanceof \Illuminate\Foundation\Auth\User) {
+                if (! $organization->isOwnedBy($this->user) && ! $organization->hasActiveMember($this->user)) {
+                    $this->errorMessage = __('You do not have access to this organization.');
 
-                return;
+                    return;
+                }
             }
 
             // Update user's organization - cast to Model for save/refresh methods
             if ($this->user instanceof Model) {
-                $this->user->organization_id = $organization->id;
+                $this->user->setAttribute('organization_id', $organization->id);
                 $this->user->save();
                 $this->user->refresh();
 

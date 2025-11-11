@@ -7,6 +7,9 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Support\Str;
 
+/**
+ * @extends Factory<Organization>
+ */
 class OrganizationFactory extends Factory
 {
     protected $model = Organization::class;
@@ -20,7 +23,7 @@ class OrganizationFactory extends Factory
             'name' => $name,
             'slug' => Str::slug($name),
             'description' => $this->faker->sentence(),
-            'owner_id' => User::factory(),
+            'owner_id' => UserFactory::new(),
             'settings' => [
                 'timezone' => $this->faker->timezone(),
                 'locale' => $this->faker->randomElement(['en', 'es', 'fr', 'de']),

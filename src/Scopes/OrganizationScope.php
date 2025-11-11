@@ -34,7 +34,6 @@ class OrganizationScope implements Scope
 
         // Use getAttributeValue() to get the raw value without triggering relationships
         // This method accesses the attribute directly, bypassing relationship lazy loading
-        // @phpstan-ignore-next-line
         return method_exists($user, 'getAttributeValue')
             ? $user->getAttributeValue('organization_id')
             : ($user->organization_id ?? null);
@@ -46,16 +45,16 @@ class OrganizationScope implements Scope
     public function extend(Builder $builder): void
     {
         $builder->macro('withoutOrganizationScope', function (Builder $builder) {
-            return $builder->withoutGlobalScope($this);
+            return $builder->withoutGlobalScope(self::class);
         });
 
         $builder->macro('withOrganization', function (Builder $builder, $organizationId) {
-            return $builder->withoutGlobalScope($this)
+            return $builder->withoutGlobalScope(self::class)
                 ->where($builder->getModel()->getTable().'.organization_id', $organizationId);
         });
 
         $builder->macro('allOrganizations', function (Builder $builder) {
-            return $builder->withoutGlobalScope($this);
+            return $builder->withoutGlobalScope(self::class);
         });
     }
 }
