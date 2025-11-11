@@ -4,6 +4,7 @@ use CleaniqueCoders\LaravelOrganization\Database\Factories\OrganizationFactory;
 use CleaniqueCoders\LaravelOrganization\Database\Factories\UserFactory;
 use CleaniqueCoders\LaravelOrganization\Livewire\CreateOrganization;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use Livewire\Livewire;
 
@@ -231,19 +232,55 @@ describe('CreateOrganization Livewire Component Error Handling', function () {
             ->call('createOrganization')
             ->assertHasErrors('name'); // Validation catches duplicate name
     });
+});
 
-    it('handles database query exception', function () {
-        // Create an organization with a very long name to potentially trigger DB error
-        // or use invalid characters depending on DB constraints
-        $longName = str_repeat('A', 500); // Exceeds typical varchar(255)
-
+describe('CreateOrganization Livewire Component Additional Coverage', function () {
+    it('clears error message when modal is opened', function () {
         Livewire::test(CreateOrganization::class)
-            ->set('name', 'Valid Name')
-            ->set('description', $longName) // This might trigger DB error if not caught by validation
+            ->set('errorMessage', 'Previous error')
+            ->call('showModal')
+            ->assertSet('errorMessage', null);
+    });
+
+    it('validates organization name format', function () {
+        Livewire::test(CreateOrganization::class)
+            ->set('name', 'Valid Organization Name')
+            ->set('description', 'Test description')
+            ->call('createOrganization')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('organizations', [
+            'name' => 'Valid Organization Name',
+            'owner_id' => $this->user->id,
+        ]);
+    });
+
+    it('handles rate limit gracefully with proper error message', function () {
+        $rateLimitKey = 'create-organization:'.$this->user->id;
+        $maxAttempts = config('organization.rate_limits.create_organization.max_attempts', 5);
+
+        // Exhaust the rate limit
+        for ($i = 0; $i < $maxAttempts; $i++) {
+            RateLimiter::hit($rateLimitKey, 60 * 60);
+        }
+
+        $component = Livewire::test(CreateOrganization::class)
+            ->set('name', 'New Organization')
             ->call('createOrganization');
 
-        // The component should handle any DB errors gracefully
-        expect(true)->toBeTrue();
+        expect($component->get('errorMessage'))->toContain('Too many organization creation attempts');
+    });
+
+    it('does not create organization when validation fails', function () {
+        $initialCount = \CleaniqueCoders\LaravelOrganization\Models\Organization::count();
+
+        Livewire::test(CreateOrganization::class)
+            ->set('name', 'A') // Too short
+            ->call('createOrganization')
+            ->assertHasErrors('name');
+
+        $finalCount = \CleaniqueCoders\LaravelOrganization\Models\Organization::count();
+        expect($finalCount)->toBe($initialCount);
     });
 });
 

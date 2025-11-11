@@ -10,7 +10,8 @@
       "Bash(php -m:*)",
       "Bash(pecl install:*)",
       "Bash(php --ini:*)",
-      "Bash(php -i:*)"
+      "Bash(php -i:*)",
+      "Bash(composer show:*)"
     ],
     "deny": [],
     "ask": []
