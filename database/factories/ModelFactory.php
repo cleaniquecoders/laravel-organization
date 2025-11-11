@@ -50,7 +50,7 @@ class OrganizationFactory extends Factory
      */
     public function ownedBy(User $user): static
     {
-        return $this->state(fn (array $attributes) => [
+        return $this->state(fn () => [
             'owner_id' => $user->id,
         ]);
     }
@@ -60,7 +60,7 @@ class OrganizationFactory extends Factory
      */
     public function withoutSettings(): static
     {
-        return $this->state(fn (array $attributes) => [
+        return $this->state(fn () => [
             'settings' => null,
         ]);
     }

@@ -5,8 +5,10 @@ namespace CleaniqueCoders\LaravelOrganization\Livewire;
 use CleaniqueCoders\LaravelOrganization\Actions\DeleteOrganization;
 use CleaniqueCoders\LaravelOrganization\Actions\UpdateOrganization as UpdateAction;
 use CleaniqueCoders\LaravelOrganization\Models\Organization;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
 
@@ -158,8 +160,32 @@ class UpdateOrganization extends Component
 
             // Emit events
             $this->dispatch('organization-updated', organizationId: $updatedOrganization->id);
-        } catch (\Exception $e) {
-            $this->errorMessage = 'Failed to update organization: '.$e->getMessage();
+        } catch (\InvalidArgumentException $e) {
+            Log::warning('Invalid argument for organization update', [
+                'organization_id' => $this->organization->id,
+                'name' => $this->name,
+                'user_id' => Auth::id(),
+                'error' => $e->getMessage(),
+            ]);
+            // Pass through business logic validation messages directly
+            $this->errorMessage = $e->getMessage();
+        } catch (QueryException $e) {
+            Log::error('Database error during organization update', [
+                'organization_id' => $this->organization->id,
+                'name' => $this->name,
+                'user_id' => Auth::id(),
+                'error' => $e->getMessage(),
+            ]);
+            $this->errorMessage = __('Database error occurred. Please try again.');
+        } catch (\Throwable $e) {
+            Log::error('Failed to update organization', [
+                'organization_id' => $this->organization->id,
+                'name' => $this->name,
+                'user_id' => Auth::id(),
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            $this->errorMessage = __('Failed to update organization. Please try again.');
         }
     }
 
@@ -203,8 +229,30 @@ class UpdateOrganization extends Component
 
             // Emit events
             $this->dispatch('organization-deleted', organizationId: $result['deleted_organization_id']);
+        } catch (QueryException $e) {
+            Log::error('Database error during organization deletion', [
+                'organization_id' => $this->organization->id,
+                'user_id' => Auth::id(),
+                'error' => $e->getMessage(),
+            ]);
+            $this->errorMessage = __('Database error occurred. Please try again.');
         } catch (\Exception $e) {
+            // Log business logic and other exceptions
+            Log::info('Organization deletion validation or error', [
+                'organization_id' => $this->organization->id,
+                'user_id' => Auth::id(),
+                'error' => $e->getMessage(),
+            ]);
+            // Pass through business logic validation messages directly
             $this->errorMessage = $e->getMessage();
+        } catch (\Throwable $e) {
+            Log::error('Unexpected error during organization deletion', [
+                'organization_id' => $this->organization->id,
+                'user_id' => Auth::id(),
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            $this->errorMessage = __('An unexpected error occurred. Please try again.');
         }
     }
 

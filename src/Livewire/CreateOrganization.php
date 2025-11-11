@@ -3,6 +3,7 @@
 namespace CleaniqueCoders\LaravelOrganization\Livewire;
 
 use CleaniqueCoders\LaravelOrganization\Actions\CreateNewOrganization;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
@@ -107,12 +108,29 @@ class CreateOrganization extends Component
 
             session()->flash('message', "Organization '{$organization->name}' created successfully!");
 
-        } catch (\Exception $e) {
-            $this->errorMessage = 'Failed to create organization: '.$e->getMessage();
+        } catch (\InvalidArgumentException $e) {
+            Log::warning('Invalid argument for organization creation', [
+                'name' => $this->name,
+                'user_id' => $user->getAuthIdentifier(),
+                'error' => $e->getMessage(),
+            ]);
+            // Pass through business logic validation messages directly
+            $this->errorMessage = $e->getMessage();
+        } catch (QueryException $e) {
+            Log::error('Database error during organization creation', [
+                'name' => $this->name,
+                'user_id' => $user->getAuthIdentifier(),
+                'error' => $e->getMessage(),
+            ]);
+            $this->errorMessage = __('Database error occurred. Please try again or contact support.');
+        } catch (\Throwable $e) {
             Log::error('Failed to create organization', [
+                'name' => $this->name,
+                'user_id' => $user->getAuthIdentifier(),
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
+            $this->errorMessage = __('Failed to create organization. Please try again.');
         }
     }
 

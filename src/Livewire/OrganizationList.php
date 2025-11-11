@@ -4,7 +4,9 @@ namespace CleaniqueCoders\LaravelOrganization\Livewire;
 
 use CleaniqueCoders\LaravelOrganization\Enums\OrganizationRole;
 use CleaniqueCoders\LaravelOrganization\Models\Organization;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -109,8 +111,27 @@ class OrganizationList extends Component
 
             // Emit event for other components to listen to
             $this->dispatch('organization-switched', organizationId: $organization->id);
-        } catch (\Exception $e) {
-            $this->errorMessage = 'Failed to switch organization: '.$e->getMessage();
+        } catch (ModelNotFoundException $e) {
+            Log::warning('Organization not found during switch', [
+                'organization_id' => $organizationId,
+                'user_id' => Auth::id(),
+            ]);
+            $this->errorMessage = __('Organization not found.');
+        } catch (\Illuminate\Database\QueryException $e) {
+            Log::error('Database error during organization switch', [
+                'organization_id' => $organizationId,
+                'user_id' => Auth::id(),
+                'error' => $e->getMessage(),
+            ]);
+            $this->errorMessage = __('Database error occurred. Please try again.');
+        } catch (\Throwable $e) {
+            Log::error('Failed to switch organization', [
+                'organization_id' => $organizationId,
+                'user_id' => Auth::id(),
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            $this->errorMessage = __('Failed to switch organization. Please try again.');
         }
     }
 

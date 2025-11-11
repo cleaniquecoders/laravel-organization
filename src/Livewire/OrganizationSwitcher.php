@@ -5,7 +5,9 @@ namespace CleaniqueCoders\LaravelOrganization\Livewire;
 use CleaniqueCoders\LaravelOrganization\Models\Organization;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Livewire\Component;
 
 class OrganizationSwitcher extends Component
@@ -69,7 +71,7 @@ class OrganizationSwitcher extends Component
                 $memberOrganizations = $this->user->relationLoaded('organizations')
                     ? $this->user->getRelation('organizations')
                     : $this->user->organizations()->get();
-            } catch (\BadMethodCallException $e) {
+            } catch (\BadMethodCallException) {
                 // Relationship doesn't exist, keep empty collection
             }
         }
@@ -114,8 +116,27 @@ class OrganizationSwitcher extends Component
 
             // Emit event for other components to listen to
             $this->dispatch('organization-switched', organizationId: $organization->id);
-        } catch (\Exception $e) {
-            $this->errorMessage = 'Failed to switch organization: '.$e->getMessage();
+        } catch (ModelNotFoundException $e) {
+            Log::warning('Organization not found during switch', [
+                'organization_id' => $organizationId,
+                'user_id' => $this->user->getAuthIdentifier(),
+            ]);
+            $this->errorMessage = __('Organization not found.');
+        } catch (\Illuminate\Database\QueryException $e) {
+            Log::error('Database error during organization switch', [
+                'organization_id' => $organizationId,
+                'user_id' => $this->user->getAuthIdentifier(),
+                'error' => $e->getMessage(),
+            ]);
+            $this->errorMessage = __('Database error occurred. Please try again.');
+        } catch (\Throwable $e) {
+            Log::error('Failed to switch organization', [
+                'organization_id' => $organizationId,
+                'user_id' => Auth::id(),
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            $this->errorMessage = __('Failed to switch organization. Please try again.');
         }
     }
 

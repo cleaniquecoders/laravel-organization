@@ -35,10 +35,21 @@ A comprehensive Laravel package for implementing organization-based tenancy in y
 ### Installation
 
 ```bash
+# Install the package
 composer require cleaniquecoders/laravel-organization
+
+# Publish and run migrations
 php artisan vendor:publish --tag="org-migrations"
 php artisan migrate
+
+# (Optional) Publish configuration file
+php artisan vendor:publish --tag="org-config"
+
+# (Optional) Publish views for customization
+php artisan vendor:publish --tag="org-views"
 ```
+
+> **Note:** The migration will create `organizations`, `organization_users` tables and add an `organization_id` column to your `users` table.
 
 ### Basic Usage
 
