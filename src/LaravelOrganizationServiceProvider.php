@@ -13,6 +13,9 @@ use CleaniqueCoders\LaravelOrganization\Livewire\CreateOrganization;
 use CleaniqueCoders\LaravelOrganization\Livewire\OrganizationList;
 use CleaniqueCoders\LaravelOrganization\Livewire\OrganizationSwitcher;
 use CleaniqueCoders\LaravelOrganization\Livewire\UpdateOrganization;
+use CleaniqueCoders\LaravelOrganization\Models\Organization;
+use CleaniqueCoders\LaravelOrganization\Policies\OrganizationPolicy;
+use Illuminate\Support\Facades\Gate;
 use Livewire\Livewire;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
@@ -61,6 +64,9 @@ class LaravelOrganizationServiceProvider extends PackageServiceProvider
 
     public function packageBooted(): void
     {
+        // Register the OrganizationPolicy
+        Gate::policy(Organization::class, OrganizationPolicy::class);
+
         // Register Livewire components
         if (class_exists(Livewire::class)) {
             Livewire::component('org::switcher', OrganizationSwitcher::class);
