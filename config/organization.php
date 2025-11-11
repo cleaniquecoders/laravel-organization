@@ -7,6 +7,7 @@
  * that manages organization-based tenancy in your Laravel application.
  */
 
+use CleaniqueCoders\LaravelOrganization\Models\Invitation;
 use CleaniqueCoders\LaravelOrganization\Models\Organization;
 use Illuminate\Foundation\Auth\User;
 
@@ -60,6 +61,48 @@ return [
     */
 
     'organization-model' => Organization::class,
+
+    /*
+    |--------------------------------------------------------------------------
+    | Invitation Model
+    |--------------------------------------------------------------------------
+    |
+    | This option defines the Invitation model class that will be used throughout
+    | the organization system. The model should extend CleaniqueCoders\LaravelOrganization\Models\Invitation
+    | or implement the necessary contracts for invitation management.
+    |
+    | The Invitation model will be used for:
+    | - Managing organization invitations
+    | - Tracking invitation status (pending, accepted, declined)
+    | - Invitation expiration and validation
+    |
+    | Default: CleaniqueCoders\LaravelOrganization\Models\Invitation::class
+    |
+    */
+
+    'invitation-model' => Invitation::class,
+
+    /*
+    |--------------------------------------------------------------------------
+    | Database Tables
+    |--------------------------------------------------------------------------
+    |
+    | Customize the database table names used by the organization system.
+    | This allows you to avoid conflicts with existing tables in your application
+    | or follow your own naming conventions.
+    |
+    | Default table names:
+    | - organizations: 'organizations'
+    | - organization_users: 'organization_users'
+    | - invitations: 'organization_invitations'
+    |
+    */
+
+    'tables' => [
+        'organizations' => 'organizations',
+        'organization_users' => 'organization_users',
+        'invitations' => 'organization_invitations',
+    ],
 
     /*
     |--------------------------------------------------------------------------

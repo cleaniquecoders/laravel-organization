@@ -47,6 +47,13 @@ class Organization extends Model implements OrganizationContract, OrganizationMe
     use SoftDeletes;
 
     /**
+     * The table associated with the model.
+     *
+     * @var string
+     */
+    protected $table;
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var list<string>
@@ -59,6 +66,16 @@ class Organization extends Model implements OrganizationContract, OrganizationMe
         'settings',
         'owner_id',
     ];
+
+    /**
+     * Create a new Eloquent model instance.
+     */
+    public function __construct(array $attributes = [])
+    {
+        parent::__construct($attributes);
+
+        $this->table = config('organization.tables.organizations', 'organizations');
+    }
 
     /**
      * The attributes that should be cast.
@@ -108,7 +125,10 @@ class Organization extends Model implements OrganizationContract, OrganizationMe
      */
     public function users(): BelongsToMany
     {
-        return $this->belongsToMany(config('organization.user-model'), 'organization_users')
+        return $this->belongsToMany(
+            config('organization.user-model'),
+            config('organization.tables.organization_users', 'organization_users')
+        )
             ->withPivot(['role', 'is_active'])
             ->withTimestamps();
     }

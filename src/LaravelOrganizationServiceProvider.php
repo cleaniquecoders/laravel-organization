@@ -35,7 +35,7 @@ class LaravelOrganizationServiceProvider extends PackageServiceProvider
          */
         $package
             ->name('org')
-            ->hasConfigFile()
+            ->hasConfigFile('organization')
             ->hasViews()
             ->hasMigration('create_organization_table')
             ->hasMigration('create_invitations_table')

@@ -14,10 +14,14 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('organizations', function (Blueprint $table) {
+        $organizationsTable = config('organization.tables.organizations', 'organizations');
+        $organizationUsersTable = config('organization.tables.organization_users', 'organization_users');
+        $usersTable = (new (config('organization.user-model')))->getTable();
+
+        Schema::create($organizationsTable, function (Blueprint $table) use ($usersTable) {
             $table->id();
             $table->uuid('uuid')->unique();
-            $table->foreignId('owner_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignIdFor(config('organization.user-model'), 'owner_id')->constrained($usersTable)->cascadeOnDelete();
             $table->string('name');
             $table->string('slug')->unique();
             $table->text('description')->nullable();
@@ -26,10 +30,10 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        Schema::create('organization_users', function (Blueprint $table) {
+        Schema::create($organizationUsersTable, function (Blueprint $table) use ($organizationsTable, $usersTable) {
             $table->id();
-            $table->foreignId('organization_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->foreignIdFor(config('organization.organization-model'))->constrained($organizationsTable)->cascadeOnDelete();
+            $table->foreignIdFor(config('organization.user-model'))->constrained($usersTable)->cascadeOnDelete();
             $table->enum('role', array_column(OrganizationRole::cases(), 'value'))->default(OrganizationRole::MEMBER->value);
             $table->boolean('is_active')->default(true);
             $table->timestamps();
@@ -42,8 +46,15 @@ return new class extends Migration
             $table->index(['user_id', 'role']);
         });
 
-        Schema::table('users', function (Blueprint $table) {
-            $table->foreignId('organization_id')->nullable()->after('id')->constrained('organizations')->nullOnDelete();
+        $hasUuid = Schema::hasColumn($usersTable, 'uuid');
+        Schema::table($usersTable, function (Blueprint $table) use ($organizationsTable, $hasUuid) {
+            $column = $table->foreignIdFor(config('organization.organization-model'))->nullable();
+            if ($hasUuid) {
+                $column->after('uuid');
+            } else {
+                $column->after('id');
+            }
+            $column->constrained($organizationsTable)->nullOnDelete();
         });
     }
 
@@ -54,13 +65,17 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::table('users', function (Blueprint $table) {
+        $organizationsTable = config('organization.tables.organizations', 'organizations');
+        $organizationUsersTable = config('organization.tables.organization_users', 'organization_users');
+        $usersTable = (new (config('organization.user-model')))->getTable();
+
+        Schema::table($usersTable, function (Blueprint $table) {
             $table->dropForeign(['organization_id']);
             $table->dropColumn('organization_id');
         });
 
-        Schema::dropIfExists('organization_users');
+        Schema::dropIfExists($organizationUsersTable);
 
-        Schema::dropIfExists('organizations');
+        Schema::dropIfExists($organizationsTable);
     }
 };

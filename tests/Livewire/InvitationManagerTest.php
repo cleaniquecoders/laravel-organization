@@ -54,7 +54,7 @@ describe('InvitationManager Livewire Component Send Invitation', function () {
             ->call('sendInvitation')
             ->assertHasNoErrors();
 
-        $this->assertDatabaseHas('invitations', [
+        $this->assertDatabaseHas(config('organization.tables.invitations'), [
             'organization_id' => $this->organization->id,
             'email' => 'newuser@example.com',
             'role' => 'member',
@@ -68,7 +68,7 @@ describe('InvitationManager Livewire Component Send Invitation', function () {
             ->call('sendInvitation')
             ->assertHasNoErrors();
 
-        $this->assertDatabaseHas('invitations', [
+        $this->assertDatabaseHas(config('organization.tables.invitations'), [
             'organization_id' => $this->organization->id,
             'email' => 'admin@example.com',
             'role' => 'administrator',

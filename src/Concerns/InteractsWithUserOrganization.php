@@ -44,7 +44,10 @@ trait InteractsWithUserOrganization
      */
     public function organizations(): BelongsToMany
     {
-        return $this->belongsToMany(config('organization.organization-model'), 'organization_users')
+        return $this->belongsToMany(
+            config('organization.organization-model'),
+            config('organization.tables.organization_users', 'organization_users')
+        )
             ->withPivot(['role', 'is_active'])
             ->withTimestamps();
     }

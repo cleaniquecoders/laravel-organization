@@ -36,6 +36,13 @@ class Invitation extends Model
     use SoftDeletes;
 
     /**
+     * The table associated with the model.
+     *
+     * @var string
+     */
+    protected $table;
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var array<int, string>
@@ -52,6 +59,16 @@ class Invitation extends Model
         'declined_at',
         'expires_at',
     ];
+
+    /**
+     * Create a new Eloquent model instance.
+     */
+    public function __construct(array $attributes = [])
+    {
+        parent::__construct($attributes);
+
+        $this->table = config('organization.tables.invitations', 'organization_invitations');
+    }
 
     /**
      * The attributes that should be cast.
@@ -71,7 +88,7 @@ class Invitation extends Model
      */
     public function organization(): BelongsTo
     {
-        return $this->belongsTo(Organization::class);
+        return $this->belongsTo(config('organization.organization-model'));
     }
 
     /**
@@ -79,7 +96,7 @@ class Invitation extends Model
      */
     public function invitedUser(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->belongsTo(config('organization.user-model'), 'user_id');
     }
 
     /**
@@ -87,7 +104,7 @@ class Invitation extends Model
      */
     public function invitedByUser(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'invited_by_user_id');
+        return $this->belongsTo(config('organization.user-model'), 'invited_by_user_id');
     }
 
     /**

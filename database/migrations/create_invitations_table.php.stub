@@ -11,12 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('invitations', function (Blueprint $table) {
+        $invitationsTable = config('organization.tables.invitations', 'organization_invitations');
+        $organizationsTable = config('organization.tables.organizations', 'organizations');
+        $usersTable = (new (config('organization.user-model')))->getTable();
+
+        Schema::create($invitationsTable, function (Blueprint $table) use ($organizationsTable, $usersTable) {
             $table->id();
             $table->uuid('uuid')->unique();
-            $table->foreignId('organization_id')->constrained('organizations')->cascadeOnDelete();
-            $table->foreignId('invited_by_user_id')->nullable()->constrained('users')->nullOnDelete();
-            $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('organization_id')->constrained($organizationsTable)->cascadeOnDelete();
+            $table->foreignId('invited_by_user_id')->nullable()->constrained($usersTable)->nullOnDelete();
+            $table->foreignId('user_id')->nullable()->constrained($usersTable)->nullOnDelete();
             $table->string('email')->index();
             $table->string('token')->unique();
             $table->string('role');
@@ -39,6 +43,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('invitations');
+        $invitationsTable = config('organization.tables.invitations', 'organization_invitations');
+
+        Schema::dropIfExists($invitationsTable);
     }
 };

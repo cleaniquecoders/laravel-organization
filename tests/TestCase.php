@@ -53,21 +53,25 @@ class TestCase extends Orchestra
             'prefix' => '',
         ]);
 
+        $organizationsTable = config('organization.tables.organizations', 'organizations');
+        $organizationUsersTable = config('organization.tables.organization_users', 'organization_users');
+        $invitationsTable = config('organization.tables.invitations', 'organization_invitations');
+
         // Create users table for testing
-        Schema::create('users', function (Blueprint $table) {
+        Schema::create('users', function (Blueprint $table) use ($organizationsTable) {
             $table->id();
             $table->uuid('uuid')->unique()->nullable();
             $table->string('name');
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-            $table->foreignIdFor(Organization::class)->nullable()->constrained()->nullOnDelete();
+            $table->foreignIdFor(Organization::class)->nullable()->constrained($organizationsTable)->nullOnDelete();
             $table->rememberToken();
             $table->timestamps();
         });
 
         // Create organizations table
-        Schema::create('organizations', function (Blueprint $table) {
+        Schema::create($organizationsTable, function (Blueprint $table) {
             $table->id();
             $table->uuid('uuid')->unique();
             $table->foreignIdFor(User::class, 'owner_id')->constrained('users')->cascadeOnDelete();
@@ -80,10 +84,10 @@ class TestCase extends Orchestra
         });
 
         // Create organization_users pivot table
-        Schema::create('organization_users', function (Blueprint $table) {
+        Schema::create($organizationUsersTable, function (Blueprint $table) use ($organizationsTable) {
             $table->id();
-            $table->foreignIdFor(Organization::class)->constrained()->cascadeOnDelete();
-            $table->foreignIdFor(User::class)->constrained()->cascadeOnDelete();
+            $table->foreignIdFor(Organization::class)->constrained($organizationsTable)->cascadeOnDelete();
+            $table->foreignIdFor(User::class)->constrained('users')->cascadeOnDelete();
             $table->enum('role', ['member', 'administrator'])->default('member');
             $table->boolean('is_active')->default(true);
             $table->timestamps();
@@ -94,10 +98,10 @@ class TestCase extends Orchestra
         });
 
         // Create invitations table
-        Schema::create('invitations', function (Blueprint $table) {
+        Schema::create($invitationsTable, function (Blueprint $table) use ($organizationsTable) {
             $table->id();
             $table->uuid('uuid')->unique();
-            $table->foreignIdFor(Organization::class)->constrained('organizations')->cascadeOnDelete();
+            $table->foreignIdFor(Organization::class)->constrained($organizationsTable)->cascadeOnDelete();
             $table->foreignId('invited_by_user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->string('email')->index();
