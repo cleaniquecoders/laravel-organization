@@ -2,6 +2,143 @@
 
 All notable changes to `laravel-organization` will be documented in this file.
 
+## Authorization, Events, Hardening & CI Expansion  - 2025-11-11
+
+### Summary
+
+This release focuses on platform hardening: a comprehensive `OrganizationPolicy`, a full organization lifecycle event suite, stricter validation and error handling in Livewire components, configurable rate limiting for organization creation, zero PHPStan issues (Level 5), expanded multi-version / multi-OS CI matrix, and integrated test coverage reporting. No breaking changes.
+
+### Added
+
+- Authorization layer: `OrganizationPolicy` (11 discrete abilities: viewAny, view, create, update, delete, restore, forceDelete, manageMembers, changeMemberRole, transferOwnership, manageSettings).
+- Organization lifecycle events:
+  - `OrganizationCreated`, `OrganizationUpdated`, `OrganizationDeleted`
+  - Membership events: `MemberAdded`, `MemberRemoved`, `MemberRoleChanged`
+  - Ownership transfer: `OwnershipTransferred`
+  
+- Invitation event listener wiring groundwork (listener registration for future invitation features without exposing unfinished API).
+- Invitation Management
+- Rate limiting for organization creation (configurable in `config/organization.php`).
+- Expanded CI matrix:
+  - PHP 8.3 & 8.4
+  - Laravel 11 & 12
+  - Ubuntu, macOS, Windows runners
+  
+- Test coverage generation & reporting (HTML + external service badge integration).
+- Robust validation and structured exception handling in Livewire components (`CreateOrganization`, `UpdateOrganization`, `OrganizationSwitcher`, `OrganizationList`).
+
+### Screenshots
+
+<img width="1254" height="708" alt="invitation" src="https://github.com/user-attachments/assets/eeb65daa-1e85-4c37-bbd8-b855068ba459" />
+**Invitation Management**
+
+`<livewire:org::invitation-manager :organization="$organization" />` provides send, resend, accept/decline UI with notifications.
+
+Core methods:
+
+```php
+sendInvitation();
+resendInvitation($uuid);
+acceptInvitation($uuid);
+declineInvitation($uuid);
+
+```
+### Changed
+
+- Service provider (`LaravelOrganizationServiceProvider`) now:
+  - Registers `OrganizationPolicy` via Gate.
+  - Registers event listeners (`InvitationSent` → `SendInvitationEmail`) for future extensibility.
+  - Registers additional Livewire components including `invitation-manager` scaffold.
+  
+- Improved internal consistency of role handling via `OrganizationRole` enum throughout actions and tests.
+- Documentation expanded for policies, events, and configuration options (authorization & lifecycle usage examples).
+
+### Fixed
+
+- Eliminated all PHPStan Level 5 errors (49 → 0) through:
+  - PHPDoc enrichment
+  - Correct builder & relationship typing
+  - Removal of unused variables and dead code
+  
+- Defensive guards added in Livewire components to prevent unhandled exceptions when edge conditions occur.
+- Stable organization scoping (recursion fix retained; no regressions observed).
+
+### Quality / DX
+
+- > 250 tests total (policy + event suites substantially increased coverage).
+  
+- Architecture tests ensure no debug functions (`dump`, `dd`, `ray`) leak into release code.
+- Consistent contract bindings for `OrganizationContract`, `OrganizationMembershipContract`, `OrganizationOwnershipContract`, `OrganizationSettingsContract`.
+
+### Performance & Safety
+
+- Rate limiting prevents abuse of organization creation (default: 5/hour per user; tune via config).
+- Event-driven architecture enables deferred processing (queue-ready serialization in events).
+
+### Documentation
+
+- Policy usage guide: how to integrate with `Gate::allows()` and blade `@can` directives.
+- Event dispatch examples: hooking into organization lifecycle for auditing or notifications.
+- Configuration reference updated to include rate limiting keys.
+
+### Upgrade Notes
+
+- No breaking changes.
+- Optional: publish updated config if you want rate limiting.
+  ```bash
+  php artisan vendor:publish --tag="laravel-organization-config"
+  
+  ```
+- If you already extended your own policy, ensure merging the newly added abilities.
+- To leverage events, register listeners in your app (audit logging, notifications, etc.).
+
+### Suggested Post-Upgrade Checks
+
+- Run static analysis: `composer analyse`
+- Run tests: `composer test`
+- (Optional) Generate coverage report: `composer test-coverage`
+
+### Compare
+
+https://github.com/cleaniquecoders/laravel-organization/compare/1.1.2...1.2.0
+
+### Installation (unchanged)
+
+```bash
+composer require cleaniquecoders/laravel-organization
+php artisan vendor:publish --tag="laravel-organization-migrations"
+php artisan migrate
+
+```
+### Snippets
+
+Policy check:
+
+```php
+if (Gate::allows('update', $organization)) {
+    // proceed
+}
+
+```
+Listening to an event:
+
+```php
+Event::listen(\CleaniqueCoders\LaravelOrganization\Events\OrganizationCreated::class, function ($event) {
+    // custom audit log
+});
+
+```
+Rate limit config fragment (`config/organization.php`):
+
+```php
+'rate_limits' => [
+    'organization_creation' => [
+        'max' => 5,
+        'decay_minutes' => 60,
+    ],
+],
+
+```
 ## Fixed Recursion - 2025-10-10
 
 ### Memory Exhaustion Fix - Infinite Loop Prevention
@@ -13,6 +150,7 @@ When users registered and received email verification, the application would han
 ```
 PHP Fatal error: Allowed memory size of 2147483648 bytes exhausted (tried to allocate 12288 bytes)
 in vendor/laravel/framework/src/Illuminate/Database/Eloquent/SoftDeletingScope.php on line 121
+
 
 ```
 #### Root Cause
@@ -64,6 +202,7 @@ public function apply(Builder $builder, Model $model)
     }
 }
 
+
 ```
 ###### After (Fixed):
 
@@ -92,6 +231,7 @@ protected function getCurrentOrganizationId(): ?int
 
     return null;
 }
+
 
 ```
 ##### Key Technical Details
@@ -171,7 +311,6 @@ Pre-built UI components for seamless integration:
 <img width="1233" height="476" alt="organization" src="https://github.com/user-attachments/assets/f02c9346-32c0-488b-90f5-a8e3b039b227" />
 #### 📚 Documentation
 Complete documentation added for:
-
 - Features overview
 - Actions and components usage
 - Configuration options
@@ -216,6 +355,7 @@ php artisan migrate
 
 
 
+
 ```
 ### 🚀 Quick Usage
 
@@ -228,6 +368,7 @@ $org->addUser($member, OrganizationRole::MEMBER);
 class Post extends Model {
     use InteractsWithOrganization;
 }
+
 
 
 
