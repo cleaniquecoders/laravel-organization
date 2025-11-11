@@ -2,6 +2,7 @@
 
 namespace CleaniqueCoders\LaravelOrganization\Actions;
 
+use CleaniqueCoders\LaravelOrganization\Events\OrganizationCreated;
 use CleaniqueCoders\LaravelOrganization\Models\Organization;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Support\Str;
@@ -59,6 +60,9 @@ class CreateNewOrganization
             $user->setAttribute('organization_id', $organization->id);
             $user->save();
         }
+
+        // Dispatch the OrganizationCreated event
+        OrganizationCreated::dispatch($organization);
 
         return $organization;
     }

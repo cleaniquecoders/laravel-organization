@@ -2,6 +2,7 @@
 
 namespace CleaniqueCoders\LaravelOrganization\Actions;
 
+use CleaniqueCoders\LaravelOrganization\Events\OrganizationUpdated;
 use CleaniqueCoders\LaravelOrganization\Models\Organization;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Support\Facades\Validator;
@@ -40,8 +41,14 @@ class UpdateOrganization
             $validated['slug'] = Str::slug($validated['name']).'-'.Str::lower(Str::random(6));
         }
 
+        // Track changes for the event
+        $changes = array_intersect_key($validated, array_flip(['name', 'description', 'slug']));
+
         // Update the organization
         $organization->update($validated);
+
+        // Dispatch the OrganizationUpdated event with changes
+        OrganizationUpdated::dispatch($organization->fresh(), $changes);
 
         return $organization->fresh();
     }

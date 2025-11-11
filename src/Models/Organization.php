@@ -8,6 +8,10 @@ use CleaniqueCoders\LaravelOrganization\Contracts\OrganizationMembershipContract
 use CleaniqueCoders\LaravelOrganization\Contracts\OrganizationOwnershipContract;
 use CleaniqueCoders\LaravelOrganization\Contracts\OrganizationSettingsContract;
 use CleaniqueCoders\LaravelOrganization\Enums\OrganizationRole;
+use CleaniqueCoders\LaravelOrganization\Events\MemberAdded;
+use CleaniqueCoders\LaravelOrganization\Events\MemberRemoved;
+use CleaniqueCoders\LaravelOrganization\Events\MemberRoleChanged;
+use CleaniqueCoders\LaravelOrganization\Events\OwnershipTransferred;
 use CleaniqueCoders\Traitify\Concerns\InteractsWithSlug;
 use CleaniqueCoders\Traitify\Concerns\InteractsWithUuid;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -176,6 +180,9 @@ class Organization extends Model implements OrganizationContract, OrganizationMe
             'created_at' => now(),
             'updated_at' => now(),
         ]);
+
+        // Dispatch the MemberAdded event
+        MemberAdded::dispatch($this, $user, $role->value);
     }
 
     /**
@@ -184,6 +191,9 @@ class Organization extends Model implements OrganizationContract, OrganizationMe
     public function removeUser(User $user): void
     {
         $this->users()->detach($user->id);
+
+        // Dispatch the MemberRemoved event
+        MemberRemoved::dispatch($this, $user);
     }
 
     /**
@@ -191,10 +201,18 @@ class Organization extends Model implements OrganizationContract, OrganizationMe
      */
     public function updateUserRole(User $user, OrganizationRole $role): void
     {
+        // Get the old role before updating
+        $oldRole = $this->getUserRole($user);
+
         $this->users()->updateExistingPivot($user->id, [
             'role' => $role->value,
             'updated_at' => now(),
         ]);
+
+        // Only dispatch event if role actually changed
+        if ($oldRole && $oldRole !== $role) {
+            MemberRoleChanged::dispatch($this, $user, $oldRole->value, $role->value);
+        }
     }
 
     /**
@@ -305,8 +323,13 @@ class Organization extends Model implements OrganizationContract, OrganizationMe
      */
     public function transferOwnership(User $newOwner): void
     {
+        $previousOwner = $this->owner;
+
         $this->setOwner($newOwner);
         $this->save();
+
+        // Dispatch the OwnershipTransferred event
+        OwnershipTransferred::dispatch($this, $previousOwner, $newOwner);
     }
 
     // Implementation of OrganizationSettingsContract methods

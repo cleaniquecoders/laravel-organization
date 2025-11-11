@@ -2,6 +2,7 @@
 
 namespace CleaniqueCoders\LaravelOrganization\Actions;
 
+use CleaniqueCoders\LaravelOrganization\Events\OrganizationDeleted;
 use CleaniqueCoders\LaravelOrganization\Models\Organization;
 use Illuminate\Foundation\Auth\User;
 use Lorisleiva\Actions\Concerns\AsAction;
@@ -30,6 +31,9 @@ class DeleteOrganization
 
         // Permanently delete the organization
         $organization->forceDelete();
+
+        // Dispatch the OrganizationDeleted event
+        OrganizationDeleted::dispatch($organization);
 
         return [
             'success' => true,
