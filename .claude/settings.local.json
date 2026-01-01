@@ -12,7 +12,8 @@
       "Bash(php --ini:*)",
       "Bash(php -i:*)",
       "Bash(composer show:*)",
-      "Bash(markdownlint:*)"
+      "Bash(markdownlint:*)",
+      "Bash(grep:*)"
     ],
     "deny": [],
     "ask": []

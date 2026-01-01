@@ -23,7 +23,7 @@ describe('Invitation System', function () {
     describe('SendInvitation Action', function () {
         it('can send an invitation', function () {
             $organization = Organization::factory()->create();
-            $invitedBy = UserFactory::new()->create();
+            $invitedBy = $organization->owner;
 
             $invitation = (new SendInvitation)->handle(
                 $organization,
@@ -47,7 +47,7 @@ describe('Invitation System', function () {
 
         it('can send an invitation with admin role', function () {
             $organization = Organization::factory()->create();
-            $invitedBy = UserFactory::new()->create();
+            $invitedBy = $organization->owner;
 
             $invitation = (new SendInvitation)->handle(
                 $organization,
@@ -61,7 +61,7 @@ describe('Invitation System', function () {
 
         it('generates unique tokens for invitations', function () {
             $organization = Organization::factory()->create();
-            $invitedBy = UserFactory::new()->create();
+            $invitedBy = $organization->owner;
 
             $invitation1 = (new SendInvitation)->handle(
                 $organization,
@@ -80,7 +80,7 @@ describe('Invitation System', function () {
 
         it('normalizes email to lowercase', function () {
             $organization = Organization::factory()->create();
-            $invitedBy = UserFactory::new()->create();
+            $invitedBy = $organization->owner;
 
             $invitation = (new SendInvitation)->handle(
                 $organization,
@@ -93,7 +93,7 @@ describe('Invitation System', function () {
 
         it('throws exception for invalid email', function () {
             $organization = Organization::factory()->create();
-            $invitedBy = UserFactory::new()->create();
+            $invitedBy = $organization->owner;
 
             (new SendInvitation)->handle(
                 $organization,
@@ -105,7 +105,7 @@ describe('Invitation System', function () {
         it('throws exception if user is already a member', function () {
             $organization = Organization::factory()->create();
             $user = UserFactory::new()->create();
-            $invitedBy = UserFactory::new()->create();
+            $invitedBy = $organization->owner;
 
             $organization->addUser($user);
 
@@ -118,7 +118,7 @@ describe('Invitation System', function () {
 
         it('throws exception if active invitation already exists', function () {
             $organization = Organization::factory()->create();
-            $invitedBy = UserFactory::new()->create();
+            $invitedBy = $organization->owner;
             $email = 'john@example.com';
 
             // Create first invitation
@@ -138,7 +138,7 @@ describe('Invitation System', function () {
 
         it('allows sending invitation after previous one expired', function () {
             $organization = Organization::factory()->create();
-            $invitedBy = UserFactory::new()->create();
+            $invitedBy = $organization->owner;
             $email = 'john@example.com';
 
             // Create first invitation with 1 day expiration
@@ -165,7 +165,7 @@ describe('Invitation System', function () {
 
         it('allows resending invitation after previous one declined', function () {
             $organization = Organization::factory()->create();
-            $invitedBy = UserFactory::new()->create();
+            $invitedBy = $organization->owner;
             $email = 'john@example.com';
 
             // Create first invitation
@@ -192,7 +192,7 @@ describe('Invitation System', function () {
     describe('AcceptInvitation Action', function () {
         it('can accept an invitation', function () {
             $organization = Organization::factory()->create();
-            $invitedBy = UserFactory::new()->create();
+            $invitedBy = $organization->owner;
             $user = UserFactory::new()->create(['email' => 'john@example.com']);
 
             $invitation = (new SendInvitation)->handle(
@@ -219,7 +219,7 @@ describe('Invitation System', function () {
 
         it('can accept an invitation with admin role', function () {
             $organization = Organization::factory()->create();
-            $invitedBy = UserFactory::new()->create();
+            $invitedBy = $organization->owner;
             $user = UserFactory::new()->create(['email' => 'admin@example.com']);
 
             $invitation = (new SendInvitation)->handle(
@@ -238,7 +238,7 @@ describe('Invitation System', function () {
 
         it('throws exception if invitation is already accepted', function () {
             $organization = Organization::factory()->create();
-            $invitedBy = UserFactory::new()->create();
+            $invitedBy = $organization->owner;
             $user = UserFactory::new()->create(['email' => 'john@example.com']);
 
             $invitation = (new SendInvitation)->handle(
@@ -254,7 +254,7 @@ describe('Invitation System', function () {
 
         it('throws exception if invitation is declined', function () {
             $organization = Organization::factory()->create();
-            $invitedBy = UserFactory::new()->create();
+            $invitedBy = $organization->owner;
             $user = UserFactory::new()->create(['email' => 'john@example.com']);
 
             $invitation = (new SendInvitation)->handle(
@@ -270,7 +270,7 @@ describe('Invitation System', function () {
 
         it('throws exception if invitation has expired', function () {
             $organization = Organization::factory()->create();
-            $invitedBy = UserFactory::new()->create();
+            $invitedBy = $organization->owner;
             $user = UserFactory::new()->create(['email' => 'john@example.com']);
 
             $invitation = Invitation::factory()
@@ -315,7 +315,7 @@ describe('Invitation System', function () {
     describe('DeclineInvitation Action', function () {
         it('can decline an invitation', function () {
             $organization = Organization::factory()->create();
-            $invitedBy = UserFactory::new()->create();
+            $invitedBy = $organization->owner;
 
             $invitation = (new SendInvitation)->handle(
                 $organization,
@@ -337,7 +337,7 @@ describe('Invitation System', function () {
 
         it('throws exception if invitation is already accepted', function () {
             $organization = Organization::factory()->create();
-            $invitedBy = UserFactory::new()->create();
+            $invitedBy = $organization->owner;
             $user = UserFactory::new()->create(['email' => 'john@example.com']);
 
             $invitation = (new SendInvitation)->handle(
@@ -353,7 +353,7 @@ describe('Invitation System', function () {
 
         it('throws exception if invitation is already declined', function () {
             $organization = Organization::factory()->create();
-            $invitedBy = UserFactory::new()->create();
+            $invitedBy = $organization->owner;
 
             $invitation = (new SendInvitation)->handle(
                 $organization,
@@ -377,7 +377,7 @@ describe('Invitation System', function () {
     describe('ResendInvitation Action', function () {
         it('can resend an invitation', function () {
             $organization = Organization::factory()->create();
-            $invitedBy = UserFactory::new()->create();
+            $invitedBy = $organization->owner;
 
             $invitation = (new SendInvitation)->handle(
                 $organization,
@@ -391,7 +391,7 @@ describe('Invitation System', function () {
             // Sleep to ensure time difference
             sleep(1);
 
-            $result = (new ResendInvitation)->handle($invitation);
+            $result = (new ResendInvitation)->handle($invitation, $invitedBy);
 
             expect($result)->toBeInstanceOf(Invitation::class)
                 ->and($result->token)->not->toBe($oldToken)
@@ -400,21 +400,25 @@ describe('Invitation System', function () {
         });
 
         it('throws exception if invitation is accepted', function () {
+            $organization = Organization::factory()->create();
             $user = UserFactory::new()->create(['email' => 'john@example.com']);
 
             $invitation = Invitation::factory()
+                ->for($organization)
                 ->accepted()
                 ->create(['email' => $user->email, 'user_id' => $user->id]);
 
-            (new ResendInvitation)->handle($invitation);
+            (new ResendInvitation)->handle($invitation, $organization->owner);
         })->throws(\InvalidArgumentException::class, 'Cannot resend');
 
         it('throws exception if invitation is declined', function () {
+            $organization = Organization::factory()->create();
             $invitation = Invitation::factory()
+                ->for($organization)
                 ->declined()
                 ->create();
 
-            (new ResendInvitation)->handle($invitation);
+            (new ResendInvitation)->handle($invitation, $organization->owner);
         })->throws(\InvalidArgumentException::class, 'Cannot resend');
     });
 

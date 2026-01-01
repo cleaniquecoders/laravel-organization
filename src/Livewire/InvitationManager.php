@@ -146,6 +146,7 @@ class InvitationManager extends Component
     public function getPendingInvitationsProperty()
     {
         return Invitation::query()
+            ->with(['invitedByUser'])
             ->where('organization_id', $this->organization->id)
             ->whereNull('accepted_at')
             ->whereNull('declined_at')
@@ -160,6 +161,7 @@ class InvitationManager extends Component
     public function getUserPendingInvitationsProperty()
     {
         return Invitation::query()
+            ->with(['organization', 'invitedByUser'])
             ->where('email', $this->currentUser->email)
             ->whereNull('accepted_at')
             ->whereNull('declined_at')

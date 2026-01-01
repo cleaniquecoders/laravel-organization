@@ -181,7 +181,7 @@ class Invitation extends Model
     /**
      * Get the invitation's unique identifier.
      */
-    public function getId()
+    public function getId(): int|string
     {
         return $this->getKey();
     }
@@ -237,7 +237,7 @@ class Invitation extends Model
     /**
      * Get the accepted at timestamp.
      */
-    public function getAcceptedAt()
+    public function getAcceptedAt(): ?\Illuminate\Support\Carbon
     {
         return $this->accepted_at;
     }
@@ -245,7 +245,7 @@ class Invitation extends Model
     /**
      * Get the declined at timestamp.
      */
-    public function getDeclinedAt()
+    public function getDeclinedAt(): ?\Illuminate\Support\Carbon
     {
         return $this->declined_at;
     }
@@ -253,7 +253,7 @@ class Invitation extends Model
     /**
      * Get the expires at timestamp.
      */
-    public function getExpiresAt()
+    public function getExpiresAt(): ?\Illuminate\Support\Carbon
     {
         return $this->expires_at;
     }

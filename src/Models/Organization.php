@@ -160,7 +160,7 @@ class Organization extends Model implements OrganizationContract, OrganizationMe
     /**
      * Get all members (users of all types) of the organization.
      */
-    public function allMembers()
+    public function allMembers(): \Illuminate\Database\Eloquent\Collection
     {
         return $this->activeUsers()->get();
     }
@@ -275,7 +275,7 @@ class Organization extends Model implements OrganizationContract, OrganizationMe
     /**
      * Get the organization's unique identifier.
      */
-    public function getId()
+    public function getId(): int|string
     {
         return $this->getKey();
     }
@@ -325,7 +325,7 @@ class Organization extends Model implements OrganizationContract, OrganizationMe
     /**
      * Get the owner ID.
      */
-    public function getOwnerId()
+    public function getOwnerId(): int|string|null
     {
         return $this->owner_id;
     }

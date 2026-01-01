@@ -20,7 +20,6 @@ class SendInvitation
     /**
      * Send an invitation to join the organization.
      *
-     *
      * @throws InvalidArgumentException
      */
     public function handle(
@@ -30,18 +29,30 @@ class SendInvitation
         OrganizationRole $role = OrganizationRole::MEMBER,
         int $expirationDays = self::DEFAULT_EXPIRATION_DAYS
     ): Invitation {
-        // Validate email format
+        // Validate email format first (before using in any messages)
+        $email = strtolower(trim($email));
         if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            throw new InvalidArgumentException("Invalid email address: {$email}");
+            throw new InvalidArgumentException('Invalid email address provided.');
+        }
+
+        // Validate that inviter has permission to send invitations
+        if (! $organization->isOwnedBy($invitedBy) && ! $organization->hasActiveMember($invitedBy)) {
+            throw new InvalidArgumentException('You do not have permission to send invitations for this organization.');
         }
 
         // Check if email already has an active membership in the organization
+        // Join with users table since pivot doesn't have email column
+        $userModel = config('organization.user-model', User::class);
         $existingMember = $organization->users()
-            ->where('email', $email)
+            ->whereExists(function ($query) use ($email, $userModel) {
+                $query->from((new $userModel)->getTable())
+                    ->whereColumn((new $userModel)->getTable().'.id', config('organization.tables.organization_users', 'organization_users').'.user_id')
+                    ->where((new $userModel)->getTable().'.email', $email);
+            })
             ->exists();
 
         if ($existingMember) {
-            throw new InvalidArgumentException("User with email {$email} is already a member of this organization.");
+            throw new InvalidArgumentException('A user with this email is already a member of this organization.');
         }
 
         // Check if there's an active/pending invitation for this email
@@ -56,7 +67,7 @@ class SendInvitation
             ->first();
 
         if ($existingInvitation) {
-            throw new InvalidArgumentException("An active invitation already exists for {$email}.");
+            throw new InvalidArgumentException('An active invitation already exists for this email.');
         }
 
         // Create the invitation
@@ -64,7 +75,7 @@ class SendInvitation
             'uuid' => Str::orderedUuid()->toString(),
             'organization_id' => $organization->id,
             'invited_by_user_id' => $invitedBy->id,
-            'email' => strtolower($email),
+            'email' => $email, // Already lowercased above
             'token' => $this->generateToken(),
             'role' => $role->value,
             'expires_at' => now()->addDays($expirationDays),

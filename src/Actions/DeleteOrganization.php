@@ -5,6 +5,7 @@ namespace CleaniqueCoders\LaravelOrganization\Actions;
 use CleaniqueCoders\LaravelOrganization\Events\OrganizationDeleted;
 use CleaniqueCoders\LaravelOrganization\Models\Organization;
 use Illuminate\Foundation\Auth\User;
+use InvalidArgumentException;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 class DeleteOrganization
@@ -18,7 +19,7 @@ class DeleteOrganization
      * @param  User  $user  The user performing the deletion
      * @return array Result with success status and message
      *
-     * @throws \Exception If deletion is not allowed
+     * @throws InvalidArgumentException If deletion is not allowed
      */
     public function handle(Organization $organization, User $user): array
     {
@@ -49,26 +50,26 @@ class DeleteOrganization
      * @param  Organization  $organization  The organization to delete
      * @param  User  $user  The user performing the deletion
      *
-     * @throws \Exception If any validation rule fails
+     * @throws InvalidArgumentException If any validation rule fails
      */
     protected function validateDeletion(Organization $organization, User $user): void
     {
         // Rule 1: Only owner can delete
         if (! $organization->isOwnedBy($user)) {
-            throw new \Exception('Only the organization owner can delete the organization.');
+            throw new InvalidArgumentException('Only the organization owner can delete the organization.');
         }
 
         // Rule 2: User must have at least one organization
         $userOrganizationCount = Organization::where('owner_id', $user->id)->count();
 
         if ($userOrganizationCount <= 1) {
-            throw new \Exception('Cannot delete your only organization. You must have at least one organization.');
+            throw new InvalidArgumentException('Cannot delete your only organization. You must have at least one organization.');
         }
 
         // Rule 3: Cannot delete current organization
         if (isset($user->organization_id) &&
             $user->organization_id === $organization->id) {
-            throw new \Exception('Cannot delete your current organization. Please switch to another organization first.');
+            throw new InvalidArgumentException('Cannot delete your current organization. Please switch to another organization first.');
         }
 
         // Rule 4: No active members (excluding owner)
@@ -77,7 +78,7 @@ class DeleteOrganization
             ->count();
 
         if ($activeMembersCount > 0) {
-            throw new \Exception('Cannot delete organization with active members. Remove all members first.');
+            throw new InvalidArgumentException('Cannot delete organization with active members. Remove all members first.');
         }
     }
 

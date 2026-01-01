@@ -2,6 +2,8 @@
 
 namespace CleaniqueCoders\LaravelOrganization\Concerns;
 
+use CleaniqueCoders\LaravelOrganization\Enums\OrganizationRole;
+use CleaniqueCoders\LaravelOrganization\LaravelOrganization;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -19,20 +21,15 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 trait InteractsWithUserOrganization
 {
     /**
-     * Session key for storing current organization ID.
-     */
-    protected const ORGANIZATION_SESSION_KEY = 'organization_current_id';
-
-    /**
      * Get the user's current organization ID.
      *
      * Checks session first, then falls back to database (default organization).
      */
-    public function getOrganizationId()
+    public function getOrganizationId(): ?int
     {
         // Check session first (for active switching without DB writes)
-        if (session()->has(self::ORGANIZATION_SESSION_KEY)) {
-            return session(self::ORGANIZATION_SESSION_KEY);
+        if (session()->has(LaravelOrganization::SESSION_KEY)) {
+            return session(LaravelOrganization::SESSION_KEY);
         }
 
         // Fallback to database (default organization)
@@ -42,15 +39,15 @@ trait InteractsWithUserOrganization
     /**
      * Set the user's current organization ID (session-based, no DB write).
      */
-    public function setOrganizationId($organizationId): void
+    public function setOrganizationId(?int $organizationId): void
     {
-        session([self::ORGANIZATION_SESSION_KEY => $organizationId]);
+        LaravelOrganization::setCurrentOrganizationId($organizationId);
     }
 
     /**
      * Get the user's default organization ID from database.
      */
-    public function getDefaultOrganizationId()
+    public function getDefaultOrganizationId(): ?int
     {
         return $this->organization_id;
     }
@@ -58,13 +55,13 @@ trait InteractsWithUserOrganization
     /**
      * Set the user's default organization ID (persisted to database).
      */
-    public function setDefaultOrganizationId($organizationId): void
+    public function setDefaultOrganizationId(?int $organizationId): void
     {
         $this->organization_id = $organizationId;
         $this->save();
 
         // Also update session to keep in sync
-        session([self::ORGANIZATION_SESSION_KEY => $organizationId]);
+        LaravelOrganization::setCurrentOrganizationId($organizationId);
     }
 
     /**
@@ -75,7 +72,7 @@ trait InteractsWithUserOrganization
     public function syncOrganizationFromDefault(): void
     {
         if ($this->organization_id) {
-            session([self::ORGANIZATION_SESSION_KEY => $this->organization_id]);
+            LaravelOrganization::setCurrentOrganizationId($this->organization_id);
         }
     }
 
@@ -86,13 +83,13 @@ trait InteractsWithUserOrganization
      */
     public function clearOrganizationSession(): void
     {
-        session()->forget(self::ORGANIZATION_SESSION_KEY);
+        LaravelOrganization::clearSession();
     }
 
     /**
      * Check if user belongs to a specific organization.
      */
-    public function belongsToOrganization($organizationId): bool
+    public function belongsToOrganization(int $organizationId): bool
     {
         return $this->organizations()->where('organization_id', $organizationId)->exists() ||
                $this->ownedOrganizations()->where('id', $organizationId)->exists();
@@ -140,13 +137,13 @@ trait InteractsWithUserOrganization
      */
     public function administratedOrganizations(): BelongsToMany
     {
-        return $this->activeOrganizations()->wherePivot('role', 'administrator');
+        return $this->activeOrganizations()->wherePivot('role', OrganizationRole::ADMINISTRATOR->value);
     }
 
     /**
      * Check if user has a specific role in an organization.
      */
-    public function hasRoleInOrganization($organizationId, string $role): bool
+    public function hasRoleInOrganization(int $organizationId, string $role): bool
     {
         return $this->organizations()
             ->where('organization_id', $organizationId)
@@ -158,7 +155,7 @@ trait InteractsWithUserOrganization
     /**
      * Check if user is owner of an organization.
      */
-    public function ownsOrganization($organizationId): bool
+    public function ownsOrganization(int $organizationId): bool
     {
         return $this->ownedOrganizations()->where('id', $organizationId)->exists();
     }
@@ -166,18 +163,18 @@ trait InteractsWithUserOrganization
     /**
      * Check if user is an administrator of an organization.
      */
-    public function isAdministratorOf($organizationId): bool
+    public function isAdministratorOf(int $organizationId): bool
     {
-        return $this->hasRoleInOrganization($organizationId, 'administrator') ||
+        return $this->hasRoleInOrganization($organizationId, OrganizationRole::ADMINISTRATOR->value) ||
                $this->ownsOrganization($organizationId);
     }
 
     /**
      * Check if user is a member of an organization.
      */
-    public function isMemberOf($organizationId): bool
+    public function isMemberOf(int $organizationId): bool
     {
-        return $this->hasRoleInOrganization($organizationId, 'member') ||
+        return $this->hasRoleInOrganization($organizationId, OrganizationRole::MEMBER->value) ||
                $this->isAdministratorOf($organizationId);
     }
 }

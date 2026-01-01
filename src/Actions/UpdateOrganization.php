@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
+use InvalidArgumentException;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 class UpdateOrganization
@@ -24,13 +25,13 @@ class UpdateOrganization
      * @return Organization The updated organization
      *
      * @throws ValidationException If validation fails
-     * @throws \Exception If user doesn't have permission
+     * @throws InvalidArgumentException If user doesn't have permission
      */
     public function handle(Organization $organization, User $user, array $data): Organization
     {
         // Check if user has permission to update
         if (! $organization->isOwnedBy($user) && ! $this->isUserAdministrator($organization, $user)) {
-            throw new \Exception('You do not have permission to update this organization.');
+            throw new InvalidArgumentException('You do not have permission to update this organization.');
         }
 
         // Validate the data

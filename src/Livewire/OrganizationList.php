@@ -3,6 +3,7 @@
 namespace CleaniqueCoders\LaravelOrganization\Livewire;
 
 use CleaniqueCoders\LaravelOrganization\Enums\OrganizationRole;
+use CleaniqueCoders\LaravelOrganization\LaravelOrganization;
 use CleaniqueCoders\LaravelOrganization\Models\Organization;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Auth;
@@ -16,11 +17,6 @@ use Livewire\WithPagination;
 class OrganizationList extends Component
 {
     use WithPagination;
-
-    /**
-     * Session key for storing current organization ID.
-     */
-    protected const ORGANIZATION_SESSION_KEY = 'organization_current_id';
 
     public string $search = '';
 
@@ -57,7 +53,7 @@ class OrganizationList extends Component
         $this->resetPage();
     }
 
-    public function sortBy($field)
+    public function sortBy(string $field): void
     {
         if ($this->sortBy === $field) {
             $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
@@ -75,7 +71,7 @@ class OrganizationList extends Component
         $this->resetPage();
     }
 
-    public function editOrganization($organizationId)
+    public function editOrganization(int $organizationId): void
     {
         $this->dispatch('show-manage-organization', [
             'organizationId' => $organizationId,
@@ -83,7 +79,7 @@ class OrganizationList extends Component
         ]);
     }
 
-    public function deleteOrganization($organizationId)
+    public function deleteOrganization(int $organizationId): void
     {
         $this->dispatch('show-manage-organization', [
             'organizationId' => $organizationId,
@@ -94,7 +90,7 @@ class OrganizationList extends Component
     /**
      * Switch to a different organization (session-based, no DB write).
      */
-    public function switchToOrganization($organizationId)
+    public function switchToOrganization(int $organizationId): void
     {
         $this->errorMessage = null;
         $this->successMessage = null;
@@ -118,7 +114,7 @@ class OrganizationList extends Component
             }
 
             // Store in session only (no DB write)
-            session([self::ORGANIZATION_SESSION_KEY => $organization->id]);
+            LaravelOrganization::setCurrentOrganizationId($organization->id);
 
             // Emit event for other components to listen to
             $this->dispatch('organization-switched', organizationId: $organization->id);
@@ -142,7 +138,7 @@ class OrganizationList extends Component
     /**
      * Set an organization as the user's default (persisted to DB).
      */
-    public function setAsDefault($organizationId)
+    public function setAsDefault(int $organizationId): void
     {
         $this->errorMessage = null;
         $this->successMessage = null;
@@ -169,7 +165,7 @@ class OrganizationList extends Component
             $user->save();
 
             // Update session to keep in sync
-            session([self::ORGANIZATION_SESSION_KEY => $organization->id]);
+            LaravelOrganization::setCurrentOrganizationId($organization->id);
 
             $this->successMessage = __('Default organization updated.');
 
@@ -187,7 +183,7 @@ class OrganizationList extends Component
     /**
      * Check if an organization is the user's default.
      */
-    public function isDefaultOrganization($organizationId): bool
+    public function isDefaultOrganization(int $organizationId): bool
     {
         $user = Auth::user();
 
@@ -238,10 +234,15 @@ class OrganizationList extends Component
         // Apply sorting
         $query->orderBy($this->sortBy, $this->sortDirection);
 
+        // Eager load the current user's membership to prevent N+1 queries
+        $query->with(['users' => function ($q) use ($user) {
+            $q->where('user_id', $user->id);
+        }]);
+
         return $query->paginate(10);
     }
 
-    public function getUserRoleInOrganization($organization)
+    public function getUserRoleInOrganization($organization): string
     {
         $user = Auth::user();
 
@@ -249,9 +250,19 @@ class OrganizationList extends Component
             return 'Owner';
         }
 
-        $role = $organization->getUserRole($user);
+        // Use eager-loaded users relationship to avoid N+1 queries
+        $membership = $organization->relationLoaded('users')
+            ? $organization->users->first()
+            : $organization->users()->where('user_id', $user->id)->first();
 
-        return $role ? $role->label() : OrganizationRole::MEMBER->label();
+        if ($membership && $membership->pivot) {
+            $roleValue = $membership->pivot->role;
+            $role = OrganizationRole::tryFrom($roleValue);
+
+            return $role ? $role->label() : OrganizationRole::MEMBER->label();
+        }
+
+        return OrganizationRole::MEMBER->label();
     }
 
     public function render()

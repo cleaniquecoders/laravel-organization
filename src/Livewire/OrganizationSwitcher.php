@@ -2,6 +2,7 @@
 
 namespace CleaniqueCoders\LaravelOrganization\Livewire;
 
+use CleaniqueCoders\LaravelOrganization\LaravelOrganization;
 use CleaniqueCoders\LaravelOrganization\Models\Organization;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
@@ -12,11 +13,6 @@ use Livewire\Component;
 
 class OrganizationSwitcher extends Component
 {
-    /**
-     * Session key for storing current organization ID.
-     */
-    protected const ORGANIZATION_SESSION_KEY = 'organization_current_id';
-
     public ?Authenticatable $user = null;
 
     public ?Organization $currentOrganization = null;
@@ -37,15 +33,14 @@ class OrganizationSwitcher extends Component
         'organization-deleted' => 'handleOrganizationDeleted',
     ];
 
-    public function mount($user = null)
+    public function mount(mixed $user = null): void
     {
         // Use passed user or fallback to Auth::user()
         $this->user = $user ?? Auth::user();
 
         // Load current organization - check session first, then DB
         if ($this->user) {
-            $organizationId = session(self::ORGANIZATION_SESSION_KEY)
-                ?? ($this->user instanceof Model ? $this->user->getAttribute('organization_id') : null);
+            $organizationId = LaravelOrganization::getCurrentOrganizationId();
 
             if ($organizationId) {
                 $this->currentOrganization = Organization::find($organizationId);
@@ -109,7 +104,7 @@ class OrganizationSwitcher extends Component
     /**
      * Switch to a different organization (session-based, no DB write).
      */
-    public function switchOrganization($organizationId)
+    public function switchOrganization(int $organizationId): void
     {
         $this->errorMessage = null;
         $this->successMessage = null;
@@ -133,7 +128,7 @@ class OrganizationSwitcher extends Component
             }
 
             // Store in session only (no DB write)
-            session([self::ORGANIZATION_SESSION_KEY => $organization->id]);
+            LaravelOrganization::setCurrentOrganizationId($organization->id);
 
             $this->currentOrganization = $organization;
             $this->showDropdown = false;
@@ -179,7 +174,7 @@ class OrganizationSwitcher extends Component
                 $this->user->refresh();
 
                 // Update session to keep in sync
-                session([self::ORGANIZATION_SESSION_KEY => $this->currentOrganization->id]);
+                LaravelOrganization::setCurrentOrganizationId($this->currentOrganization->id);
 
                 $this->isCurrentDefault = true;
                 $this->successMessage = __('Default organization updated.');
@@ -224,19 +219,19 @@ class OrganizationSwitcher extends Component
      *
      * @param  int  $organizationId  The ID of the deleted organization
      */
-    public function handleOrganizationDeleted($organizationId)
+    public function handleOrganizationDeleted(int $organizationId): void
     {
         // If the deleted organization was the current one, clear it
-        if ($this->currentOrganization && $this->currentOrganization->id == $organizationId) {
+        if ($this->currentOrganization && $this->currentOrganization->id === $organizationId) {
             $this->currentOrganization = null;
 
             // Clear session
-            session()->forget(self::ORGANIZATION_SESSION_KEY);
+            LaravelOrganization::clearSession();
 
             // Only update DB if the deleted org was the default
             if ($this->user instanceof Model) {
                 $defaultOrgId = $this->user->getAttribute('organization_id');
-                if ($defaultOrgId == $organizationId) {
+                if ($defaultOrgId === $organizationId) {
                     $this->user->update(['organization_id' => null]);
                 }
             }

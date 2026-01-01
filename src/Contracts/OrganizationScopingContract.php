@@ -27,7 +27,7 @@ interface OrganizationScopingContract
     /**
      * Scope to filter by specific organization.
      */
-    public function scopeForOrganization(Builder $query, $organizationId): Builder;
+    public function scopeForOrganization(Builder $query, ?int $organizationId): Builder;
 
     /**
      * Get the current organization ID from auth user.
@@ -37,5 +37,5 @@ interface OrganizationScopingContract
     /**
      * Get the organization ID for this model.
      */
-    public function getOrganizationId();
+    public function getOrganizationId(): ?int;
 }

@@ -2,10 +2,10 @@
 
 namespace CleaniqueCoders\LaravelOrganization\Concerns;
 
+use CleaniqueCoders\LaravelOrganization\LaravelOrganization;
 use CleaniqueCoders\LaravelOrganization\Scopes\OrganizationScope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Facades\Auth;
 
 /**
  * Trait for models that are scoped to organizations.
@@ -53,7 +53,7 @@ trait InteractsWithOrganization
     /**
      * Scope to filter by specific organization.
      */
-    public function scopeForOrganization(Builder $query, $organizationId): Builder
+    public function scopeForOrganization(Builder $query, ?int $organizationId): Builder
     {
         return $query->withoutGlobalScope(OrganizationScope::class)
             ->where('organization_id', $organizationId);
@@ -71,30 +71,13 @@ trait InteractsWithOrganization
      */
     public static function getCurrentOrganizationId(): ?int
     {
-        // Check session first (for active switching without DB writes)
-        $sessionKey = 'organization_current_id';
-        if (session()->has($sessionKey)) {
-            return session($sessionKey);
-        }
-
-        if (! Auth::check()) {
-            return null;
-        }
-
-        $user = Auth::user();
-
-        // Use getAttributeValue() to get the raw value without triggering relationships
-        // This method accesses the attribute directly, bypassing relationship lazy loading
-        // @phpstan-ignore-next-line
-        return method_exists($user, 'getAttributeValue')
-            ? $user->getAttributeValue('organization_id')
-            : ($user->organization_id ?? null);
+        return LaravelOrganization::getCurrentOrganizationId();
     }
 
     /**
      * Get the organization ID for this model.
      */
-    public function getOrganizationId()
+    public function getOrganizationId(): ?int
     {
         return $this->organization_id;
     }

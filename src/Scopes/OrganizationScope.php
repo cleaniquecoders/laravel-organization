@@ -2,17 +2,17 @@
 
 namespace CleaniqueCoders\LaravelOrganization\Scopes;
 
+use CleaniqueCoders\LaravelOrganization\LaravelOrganization;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Scope;
-use Illuminate\Support\Facades\Auth;
 
 class OrganizationScope implements Scope
 {
     /**
      * Apply the scope to a given Eloquent query builder.
      */
-    public function apply(Builder $builder, Model $model)
+    public function apply(Builder $builder, Model $model): void
     {
         $organizationId = $this->getCurrentOrganizationId();
 
@@ -20,11 +20,6 @@ class OrganizationScope implements Scope
             $builder->where('organization_id', $organizationId);
         }
     }
-
-    /**
-     * Session key for storing current organization ID.
-     */
-    protected const ORGANIZATION_SESSION_KEY = 'organization_current_id';
 
     /**
      * Get the current organization ID safely without triggering recursive queries.
@@ -35,22 +30,7 @@ class OrganizationScope implements Scope
      */
     protected function getCurrentOrganizationId(): ?int
     {
-        // Check session first (for active switching without DB writes)
-        if (session()->has(self::ORGANIZATION_SESSION_KEY)) {
-            return session(self::ORGANIZATION_SESSION_KEY);
-        }
-
-        if (! Auth::check()) {
-            return null;
-        }
-
-        $user = Auth::user();
-
-        // Use getAttributeValue() to get the raw value without triggering relationships
-        // This method accesses the attribute directly, bypassing relationship lazy loading
-        return method_exists($user, 'getAttributeValue')
-            ? $user->getAttributeValue('organization_id')
-            : ($user->organization_id ?? null);
+        return LaravelOrganization::getCurrentOrganizationId();
     }
 
     /**

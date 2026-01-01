@@ -71,7 +71,7 @@ trait InteractsWithOrganizationSettings
     /**
      * Get a setting value.
      */
-    public function getSetting(string $key, $default = null)
+    public function getSetting(string $key, mixed $default = null): mixed
     {
         return data_get($this->settings, $key, $default);
     }
@@ -79,7 +79,7 @@ trait InteractsWithOrganizationSettings
     /**
      * Set a setting value.
      */
-    public function setSetting(string $key, $value): void
+    public function setSetting(string $key, mixed $value): void
     {
         $settings = $this->settings ?? [];
         data_set($settings, $key, $value);

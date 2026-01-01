@@ -3,6 +3,7 @@
 namespace CleaniqueCoders\LaravelOrganization\Actions;
 
 use CleaniqueCoders\LaravelOrganization\Events\OrganizationCreated;
+use CleaniqueCoders\LaravelOrganization\LaravelOrganization;
 use CleaniqueCoders\LaravelOrganization\Models\Organization;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Support\Str;
@@ -11,11 +12,6 @@ use Lorisleiva\Actions\Concerns\AsAction;
 class CreateNewOrganization
 {
     use AsAction;
-
-    /**
-     * Session key for storing current organization ID.
-     */
-    protected const ORGANIZATION_SESSION_KEY = 'organization_current_id';
 
     public string $commandSignature = 'organization:create {email} {--organization_name=} {--description=}';
 
@@ -67,7 +63,7 @@ class CreateNewOrganization
 
             // Also set in session for immediate use (if session is available)
             if (function_exists('session')) {
-                session([self::ORGANIZATION_SESSION_KEY => $organization->id]);
+                LaravelOrganization::setCurrentOrganizationId($organization->id);
             }
         }
 
