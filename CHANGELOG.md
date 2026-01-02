@@ -2,6 +2,128 @@
 
 All notable changes to `laravel-organization` will be documented in this file.
 
+## 1.2.2 - 2026-01-02
+
+### New Features
+
+#### Organization Ownership Transfer
+
+A complete workflow for transferring organization ownership between users has been implemented.
+
+**How it works:**
+
+1. The current owner initiates a transfer request from the organization's action menu
+2. The new owner receives an email notification with Accept/Decline links
+3. The new owner reviews and accepts or declines the request
+4. If accepted, ownership transfers and the previous owner becomes an Administrator
+
+### New Files Added
+
+#### Models
+
+- `src/Models/OwnershipTransferRequest.php` - Model for managing transfer requests with statuses (pending, accepted, declined, cancelled)
+
+#### Actions
+
+- `src/Actions/InitiateOwnershipTransfer.php` - Initiates transfer and sends email notification
+- `src/Actions/AcceptOwnershipTransfer.php` - Accepts transfer and updates ownership
+- `src/Actions/DeclineOwnershipTransfer.php` - Declines transfer request
+- `src/Actions/CancelOwnershipTransfer.php` - Cancels pending transfer request
+
+#### Events
+
+- `src/Events/OwnershipTransferRequested.php`
+- `src/Events/OwnershipTransferAccepted.php`
+- `src/Events/OwnershipTransferDeclined.php`
+- `src/Events/OwnershipTransferCancelled.php`
+
+#### Mail
+
+- `src/Mail/OwnershipTransferRequestMail.php` - Email to new owner with accept/decline links
+- `src/Mail/OwnershipTransferCompletedMail.php` - Notification email upon completion
+
+#### Views
+
+- `resources/views/emails/ownership-transfer-request.blade.php` - Transfer request email template
+- `resources/views/emails/ownership-transfer-completed.blade.php` - Transfer completed email template
+- `resources/views/livewire/transfer-ownership.blade.php` - Transfer ownership form
+- `resources/views/transfer-ownership.blade.php` - Standalone transfer page
+
+#### Routes
+
+- `routes/web.php` - Package routes for transfer functionality:
+  - `GET /organization/{organization}/transfer` - Transfer ownership page
+  - `GET /organization/transfer/{token}/accept` - Accept transfer via email
+  - `GET /organization/transfer/{token}/decline` - Decline transfer via email
+  
+
+#### Migrations
+
+- `database/migrations/create_ownership_transfer_requests_table.php.stub`
+
+### Changes
+
+#### OrganizationRole Enum
+
+- Added `OWNER` role case
+- Added `isOwner()` method
+- Updated `label()` and `description()` methods
+
+#### Organization Model
+
+- Added `owners()` relationship for pivot table
+- Updated `transferOwnership()` method to handle role changes in pivot table
+
+#### InteractsWithUserOrganization Trait
+
+- Added `ownedOrganizationsViaRole()` method
+- Added `isOwnerOf()` method
+
+#### CreateNewOrganization Action
+
+- Creator is now assigned `OWNER` role (instead of `ADMINISTRATOR`) in the pivot table
+
+#### Livewire Components
+
+- Added `TransferOwnership` component for initiating transfers
+- Updated `OrganizationList` component with 3-dot dropdown menu and Transfer Ownership action
+- Fixed `OrganizationSwitcher` component for Livewire 3 single root element requirement
+
+#### UI Improvements
+
+- Added 3-dot dropdown action menu for organization list
+- Dropdown menu now uses fixed positioning to prevent overflow clipping
+- Removed duplicate Alpine.js CDN (Livewire 3 includes Alpine)
+
+### Database Schema
+
+New `ownership_transfer_requests` table:
+
+| Column | Type | Description |
+|--------|------|-------------|
+| id | bigint | Primary key |
+| uuid | string | Unique identifier |
+| organization_id | bigint | Foreign key to organizations |
+| current_owner_id | bigint | Foreign key to users (current owner) |
+| new_owner_id | bigint | Foreign key to users (new owner) |
+| token | string | Unique token for email links |
+| message | text | Optional message from current owner |
+| expires_at | timestamp | Request expiration time |
+| accepted_at | timestamp | When request was accepted |
+| declined_at | timestamp | When request was declined |
+| cancelled_at | timestamp | When request was cancelled |
+| created_at | timestamp | Creation timestamp |
+| updated_at | timestamp | Last update timestamp |
+
+### Configuration
+
+The transfer request expiration time defaults to 72 hours and can be customized via the `InitiateOwnershipTransfer` action.
+
+### Breaking Changes
+
+- Organizations now use dual-record ownership: `owner_id` column AND pivot table entry with `OWNER` role
+- Default role when creating organization changed from `ADMINISTRATOR` to `OWNER`
+
 ## 1.2.1 - 2026-01-01
 
 ### Overview
@@ -149,7 +271,6 @@ This release focuses on platform hardening: a comprehensive `OrganizationPolicy`
 <img width="1254" height="708" alt="invitation" src="https://github.com/user-attachments/assets/eeb65daa-1e85-4c37-bbd8-b855068ba459" />
 **Invitation Management**
 `<livewire:org::invitation-manager :organization="$organization" />` provides send, resend, accept/decline UI with notifications.
-
 Core methods:
 
 ```php
@@ -157,6 +278,7 @@ sendInvitation();
 resendInvitation($uuid);
 acceptInvitation($uuid);
 declineInvitation($uuid);
+
 
 
 ```
@@ -214,6 +336,7 @@ declineInvitation($uuid);
   php artisan vendor:publish --tag="laravel-organization-config"
   
   
+  
   ```
 - If you already extended your own policy, ensure merging the newly added abilities.
 - To leverage events, register listeners in your app (audit logging, notifications, etc.).
@@ -236,6 +359,7 @@ php artisan vendor:publish --tag="laravel-organization-migrations"
 php artisan migrate
 
 
+
 ```
 ### Snippets
 
@@ -247,6 +371,7 @@ if (Gate::allows('update', $organization)) {
 }
 
 
+
 ```
 Listening to an event:
 
@@ -254,6 +379,7 @@ Listening to an event:
 Event::listen(\CleaniqueCoders\LaravelOrganization\Events\OrganizationCreated::class, function ($event) {
     // custom audit log
 });
+
 
 
 ```
@@ -268,6 +394,7 @@ Rate limit config fragment (`config/organization.php`):
 ],
 
 
+
 ```
 ## Fixed Recursion - 2025-10-10
 
@@ -280,6 +407,7 @@ When users registered and received email verification, the application would han
 ```
 PHP Fatal error: Allowed memory size of 2147483648 bytes exhausted (tried to allocate 12288 bytes)
 in vendor/laravel/framework/src/Illuminate/Database/Eloquent/SoftDeletingScope.php on line 121
+
 
 
 
@@ -335,6 +463,7 @@ public function apply(Builder $builder, Model $model)
 
 
 
+
 ```
 ###### After (Fixed):
 
@@ -363,6 +492,7 @@ protected function getCurrentOrganizationId(): ?int
 
     return null;
 }
+
 
 
 
@@ -449,7 +579,6 @@ Complete documentation added for:
 - Configuration options
 - Contracts and interfaces
 **Full Changelog**: https://github.com/cleaniquecoders/laravel-organization/compare/1.0.3...1.1.0
-
 ## Update gitignore to include docs/ directory - 2025-10-10
 
 **Full Changelog**: https://github.com/cleaniquecoders/laravel-organization/compare/1.0.2...1.0.3
@@ -489,6 +618,7 @@ php artisan migrate
 
 
 
+
 ```
 ### 🚀 Quick Usage
 
@@ -501,6 +631,7 @@ $org->addUser($member, OrganizationRole::MEMBER);
 class Post extends Model {
     use InteractsWithOrganization;
 }
+
 
 
 
