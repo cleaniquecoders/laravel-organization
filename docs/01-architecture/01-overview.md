@@ -23,6 +23,8 @@
 - **Built-in Roles**:
   - `MEMBER`: Regular member with basic access
   - `ADMINISTRATOR`: Full management access to organization
+  - `OWNER`: Full control and ownership of the organization
+- **Role Helper Methods**: `isAdmin()`, `isMember()`, `isOwner()` for easy checking
 - **Extensible Design**: Easy to add custom roles by extending the enum
 - **Role Validation**: Automatic validation of role assignments
 

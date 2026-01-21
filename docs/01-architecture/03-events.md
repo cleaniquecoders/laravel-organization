@@ -1,14 +1,18 @@
 # Events & Listeners
 
-The Laravel Organization package dispatches comprehensive events throughout the organization and member lifecycle, enabling you to build reactive features like notifications, webhooks, activity logging, and real-time UI updates.
+The Laravel Organization package dispatches comprehensive events throughout the organization and
+member lifecycle, enabling you to build reactive features like notifications, webhooks, activity
+logging, and real-time UI updates.
 
 ## Overview
 
-The package dispatches **7 events** across three categories:
+The package dispatches **14 events** across four categories:
 
 - **Lifecycle Events**: `OrganizationCreated`, `OrganizationUpdated`, `OrganizationDeleted`
 - **Member Events**: `MemberAdded`, `MemberRemoved`, `MemberRoleChanged`
-- **Ownership Events**: `OwnershipTransferred`
+- **Ownership Events**: `OwnershipTransferred`, `OwnershipTransferRequested`,
+  `OwnershipTransferAccepted`, `OwnershipTransferDeclined`, `OwnershipTransferCancelled`
+- **Invitation Events**: `InvitationSent`, `InvitationAccepted`, `InvitationDeclined`
 
 All events use Laravel's event system and support:
 
@@ -315,6 +319,175 @@ Event::listen(OwnershipTransferred::class, function (OwnershipTransferred $event
 - Update permissions
 - Send webhook notification
 - Update accounting/billing records
+
+### OwnershipTransferRequested
+
+Dispatched when an ownership transfer is requested (pending acceptance).
+
+```php
+use CleaniqueCoders\LaravelOrganization\Events\OwnershipTransferRequested;
+
+Event::listen(OwnershipTransferRequested::class, function (OwnershipTransferRequested $event) {
+    $organization = $event->organization;
+    $currentOwner = $event->currentOwner;
+    $requestedOwner = $event->requestedOwner;
+    $transferRequest = $event->transferRequest;
+
+    // Notify the requested new owner
+    Mail::send(new OwnershipTransferRequestMail($transferRequest));
+});
+```
+
+**Event Properties:**
+
+- `$event->organization` - The Organization
+- `$event->currentOwner` - The current owner (User)
+- `$event->requestedOwner` - The requested new owner (User)
+- `$event->transferRequest` - The OwnershipTransferRequest model
+
+### OwnershipTransferAccepted
+
+Dispatched when an ownership transfer request is accepted.
+
+```php
+use CleaniqueCoders\LaravelOrganization\Events\OwnershipTransferAccepted;
+
+Event::listen(OwnershipTransferAccepted::class, function (OwnershipTransferAccepted $event) {
+    $organization = $event->organization;
+    $previousOwner = $event->previousOwner;
+    $newOwner = $event->newOwner;
+
+    // Send confirmation emails
+    Mail::send(new OwnershipTransferCompletedMail($organization, $previousOwner, $newOwner));
+});
+```
+
+**Event Properties:**
+
+- `$event->organization` - The Organization
+- `$event->previousOwner` - The previous owner (User)
+- `$event->newOwner` - The new owner (User)
+
+### OwnershipTransferDeclined
+
+Dispatched when an ownership transfer request is declined.
+
+```php
+use CleaniqueCoders\LaravelOrganization\Events\OwnershipTransferDeclined;
+
+Event::listen(OwnershipTransferDeclined::class, function (OwnershipTransferDeclined $event) {
+    $organization = $event->organization;
+    $currentOwner = $event->currentOwner;
+    $declinedBy = $event->declinedBy;
+
+    // Notify current owner of declined transfer
+    Notification::send($currentOwner, new TransferDeclinedNotification($organization, $declinedBy));
+});
+```
+
+**Event Properties:**
+
+- `$event->organization` - The Organization
+- `$event->currentOwner` - The current owner (User)
+- `$event->declinedBy` - The user who declined (User)
+
+### OwnershipTransferCancelled
+
+Dispatched when an ownership transfer request is cancelled by the current owner.
+
+```php
+use CleaniqueCoders\LaravelOrganization\Events\OwnershipTransferCancelled;
+
+Event::listen(OwnershipTransferCancelled::class, function (OwnershipTransferCancelled $event) {
+    $organization = $event->organization;
+    $cancelledBy = $event->cancelledBy;
+    $requestedOwner = $event->requestedOwner;
+
+    // Notify the requested owner
+    Notification::send($requestedOwner, new TransferCancelledNotification($organization));
+});
+```
+
+**Event Properties:**
+
+- `$event->organization` - The Organization
+- `$event->cancelledBy` - The user who cancelled (User)
+- `$event->requestedOwner` - The user who was going to receive ownership (User)
+
+## Invitation Events
+
+### InvitationSent
+
+Dispatched when an invitation is sent to a user.
+
+```php
+use CleaniqueCoders\LaravelOrganization\Events\InvitationSent;
+
+Event::listen(InvitationSent::class, function (InvitationSent $event) {
+    $invitation = $event->invitation;
+
+    // The package automatically sends emails via SendInvitationEmail listener
+    // Add custom logic here
+    ActivityLog::create([
+        'organization_id' => $invitation->organization_id,
+        'action' => 'invitation_sent',
+        'email' => $invitation->email,
+    ]);
+});
+```
+
+**Event Properties:**
+
+- `$event->invitation` - The Invitation model
+
+**When Dispatched:**
+
+- When `SendInvitation` action completes
+- When `ResendInvitation` action completes
+
+**Built-in Listener:**
+
+The package registers `SendInvitationEmail` listener automatically to send invitation emails.
+
+### InvitationAccepted
+
+Dispatched when an invitation is accepted.
+
+```php
+use CleaniqueCoders\LaravelOrganization\Events\InvitationAccepted;
+
+Event::listen(InvitationAccepted::class, function (InvitationAccepted $event) {
+    $invitation = $event->invitation;
+    $user = $event->user;
+
+    // Send welcome onboarding
+    Mail::send(new WelcomeToTeam($user, $invitation->organization));
+});
+```
+
+**Event Properties:**
+
+- `$event->invitation` - The Invitation model
+- `$event->user` - The User who accepted
+
+### InvitationDeclined
+
+Dispatched when an invitation is declined.
+
+```php
+use CleaniqueCoders\LaravelOrganization\Events\InvitationDeclined;
+
+Event::listen(InvitationDeclined::class, function (InvitationDeclined $event) {
+    $invitation = $event->invitation;
+
+    // Notify the inviter
+    Notification::send($invitation->invitedBy, new InvitationDeclinedNotification($invitation));
+});
+```
+
+**Event Properties:**
+
+- `$event->invitation` - The Invitation model
 
 ## Creating Event Listeners
 

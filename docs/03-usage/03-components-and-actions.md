@@ -6,7 +6,9 @@ This documentation covers the action classes and Livewire components provided by
 
 ## Organization Actions
 
-This package provides dedicated action classes for managing organizations. Actions are reusable, testable units of business logic that can be used in various contexts (Livewire components, API controllers, console commands, jobs, etc.).
+This package provides dedicated action classes for managing organizations. Actions are reusable,
+testable units of business logic that can be used in various contexts (Livewire components, API
+controllers, console commands, jobs, etc.).
 
 ### Available Actions
 
@@ -137,7 +139,8 @@ $requirements = DeleteOrganization::getDeletionRequirements();
 
 ### Action Pattern
 
-All actions in this package use the [Laravel Actions](https://laravelactions.com/) package by Loris Leiva, which provides the `AsAction` trait.
+All actions in this package use the [Laravel Actions](https://laravelactions.com/) package by
+Loris Leiva, which provides the `AsAction` trait.
 
 #### Key Features
 
@@ -327,7 +330,9 @@ class OrganizationManagementService
 
 ## Livewire Components
 
-The Laravel Organization package provides several pre-built Livewire components for managing organizations in your application. These components are built with Alpine.js for interactivity and styled with Tailwind CSS.
+The Laravel Organization package provides several pre-built Livewire components for managing
+organizations in your application. These components are built with Alpine.js for interactivity
+and styled with Tailwind CSS.
 
 ### Available Components
 

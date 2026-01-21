@@ -129,7 +129,8 @@ $organization->removeUser($user);
 
 ### Deleting Organizations
 
-Organizations can be permanently deleted using the `DeleteOrganization` action, but the deletion must comply with specific business rules:
+Organizations can be permanently deleted using the `DeleteOrganization` action, but the deletion
+must comply with specific business rules:
 
 ```php
 use CleaniqueCoders\LaravelOrganization\Actions\DeleteOrganization;
@@ -170,11 +171,11 @@ if ($eligibility['can_delete']) {
 #### Deletion Error Messages
 
 | Scenario | Error Message |
-|----------|--------------|
-| Only one organization | "Cannot delete your only organization. You must have at least one organization." |
-| Current organization | "Cannot delete your current organization. Please switch to another organization first." |
-| Has active members | "Cannot delete organization with active members. Remove all members first." |
-| Not owner | "Only the organization owner can delete the organization." |
+| -------- | ------------- |
+| Only one organization | Cannot delete your only organization |
+| Current organization | Cannot delete your current organization |
+| Has active members | Cannot delete organization with active members |
+| Not owner | Only the organization owner can delete |
 | Name mismatch | "Organization name does not match." |
 
 #### Deletion Type

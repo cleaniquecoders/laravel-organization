@@ -1,6 +1,8 @@
 # Organization Contracts
 
-This package provides contracts (interfaces) that follow SOLID principles to ensure flexible and maintainable organization management. These contracts allow developers to implement their own models while ensuring they provide all necessary functionality.
+This package provides contracts (interfaces) that follow SOLID principles to ensure flexible and
+maintainable organization management. These contracts allow developers to implement their own
+models while ensuring they provide all necessary functionality.
 
 ## Available Contracts
 
@@ -254,7 +256,8 @@ Each contract has a single, well-defined responsibility:
 
 ### Open/Closed Principle (OCP)
 
-The contracts are open for extension but closed for modification. You can implement your own models that extend functionality without changing the contracts.
+The contracts are open for extension but closed for modification. You can implement your own models
+that extend functionality without changing the contracts.
 
 ### Liskov Substitution Principle (LSP)
 
@@ -266,7 +269,8 @@ Contracts are segregated by functionality, so implementations only need to depen
 
 ### Dependency Inversion Principle (DIP)
 
-High-level modules depend on abstractions (contracts) rather than concrete implementations, making the system more flexible and testable.
+High-level modules depend on abstractions (contracts) rather than concrete implementations, making
+the system more flexible and testable.
 
 ## Testing with Contracts
 

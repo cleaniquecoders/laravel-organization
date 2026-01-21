@@ -37,7 +37,8 @@ LaravelOrganization::setCurrentOrganizationId($organizationId);
 LaravelOrganization::clearSession();
 ```
 
-This class is used internally by all components for consistent session handling. You can use it directly when you need low-level control over the organization context.
+This class is used internally by all components for consistent session handling. You can use it
+directly when you need low-level control over the organization context.
 
 ## How It Works
 

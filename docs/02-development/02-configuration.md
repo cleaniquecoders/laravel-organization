@@ -2,11 +2,13 @@
 
 ## Overview
 
-The Laravel Organization package provides extensive configuration options to customize its behavior for your application needs.
+The Laravel Organization package provides extensive configuration options to customize its
+behavior for your application needs.
 
 ## Configuration File
 
-The main configuration file is located at `config/organization.php` after publishing. Here's a detailed breakdown of all available options:
+The main configuration file is located at `config/organization.php` after publishing. Here's a
+detailed breakdown of all available options:
 
 ## Model Configuration
 

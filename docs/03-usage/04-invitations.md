@@ -1,6 +1,8 @@
 # Organization Invitations
 
-The Organization Invitations system allows organizations to invite users to join via email. The system provides a complete workflow for sending, accepting, declining, and managing invitations with expiration tracking, role assignment, and event-driven architecture.
+The Organization Invitations system allows organizations to invite users to join via email. The
+system provides a complete workflow for sending, accepting, declining, and managing invitations
+with expiration tracking, role assignment, and event-driven architecture.
 
 ## Table of Contents
 
@@ -24,7 +26,8 @@ Provides email invitations, token security, expiration, role assignment, events,
 
 ### SendInvitation
 
-The inviter must be either the organization owner or an active member of the organization. This security check prevents unauthorized users from sending invitations:
+The inviter must be either the organization owner or an active member of the organization. This
+security check prevents unauthorized users from sending invitations:
 
 ```php
 // Will throw InvalidArgumentException if user lacks permission

@@ -1,6 +1,8 @@
 # Authorization & Policies
 
-The Laravel Organization package includes a comprehensive authorization layer through the `OrganizationPolicy` class, which integrates seamlessly with Laravel's Gate and Blade authorization features.
+The Laravel Organization package includes a comprehensive authorization layer through the
+`OrganizationPolicy` class, which integrates seamlessly with Laravel's Gate and Blade
+authorization features.
 
 ## Overview
 
@@ -450,7 +452,7 @@ public function boot()
 ## Role-Based Access Control Reference
 
 | Action | Owner | Admin | Member | Guest |
-|--------|-------|-------|--------|-------|
+| ------ | ----- | ----- | ------ | ----- |
 | View Organization | ✓ | ✓ | ✓ | ✗ |
 | Create Organization | ✓ | ✓ | ✓ | ✗ |
 | Update Organization | ✓ | ✓ | ✗ | ✗ |

@@ -2,7 +2,8 @@
 
 ## Problem Description
 
-When users registered and received email verification, the application would hang and eventually hit PHP's memory limit with errors like:
+When users registered and received email verification, the application would hang and eventually
+hit PHP's memory limit with errors like:
 
 ```text
 PHP Fatal error: Allowed memory size of 2147483648 bytes exhausted (tried to allocate 12288 bytes)
@@ -30,7 +31,6 @@ During registration and email verification:
 - Each query on scoped models triggers the scope
 - The scope accesses the user model repeatedly
 - This creates an exponential cascade of queries
-
 
 ## The Fix
 
