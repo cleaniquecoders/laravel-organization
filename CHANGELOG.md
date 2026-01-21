@@ -2,6 +2,71 @@
 
 All notable changes to `laravel-organization` will be documented in this file.
 
+## Added Livewire 4 Support - 2026-01-21
+
+### 1.3.0 - 2026-01-21
+
+#### Livewire Component Refactoring
+
+Refactored Livewire components with simplified naming convention for better consistency and usability.
+
+##### Component Renames
+
+| Old Name | New Name |
+|----------|----------|
+| `CreateOrganization` | `Create` |
+| `UpdateOrganization` | `Update` |
+| `OrganizationList` | `Listing` |
+| `OrganizationSwitcher` | `Switcher` |
+
+##### Usage Changes
+
+```blade
+{{-- Before --}}
+<livewire:org::create-organization />
+<livewire:org::update-organization :organization="$organization" />
+<livewire:org::organization-list />
+<livewire:org::organization-switcher />
+
+{{-- After --}}
+<livewire:org::create />
+<livewire:org::update :organization="$organization" />
+<livewire:org::listing />
+<livewire:org::switcher />
+
+```
+#### Enhancements
+
+- Enhanced organization creation with rate limiting and validation
+- Improved organization listing with search, sorting, and filtering capabilities
+- Better error handling and logging in organization actions
+- Updated tests to reflect changes in Livewire components
+
+#### Documentation Updates
+
+- Expanded events documentation with comprehensive lifecycle event examples
+- Updated architecture overview and contracts documentation
+- Improved usage guides for components and actions
+- Enhanced troubleshooting documentation
+
+#### Files Changed
+
+- `src/Livewire/Create.php` (renamed from CreateOrganization)
+- `src/Livewire/Update.php` (renamed from UpdateOrganization)
+- `src/Livewire/Listing.php` (renamed from OrganizationList)
+- `src/Livewire/Switcher.php` (renamed from OrganizationSwitcher)
+- `src/LaravelOrganizationServiceProvider.php`
+- Documentation files in `docs/`
+
+#### Breaking Changes
+
+- Livewire component tag names have changed. Update your Blade templates to use the new component names.
+
+#### Upgrade Guide
+
+1. Update Blade templates to use new component names
+2. If you extended any of the renamed components, update your class references
+
 ## 1.2.2 - 2026-01-02
 
 ### New Features
@@ -272,12 +337,12 @@ This release focuses on platform hardening: a comprehensive `OrganizationPolicy`
 **Invitation Management**
 `<livewire:org::invitation-manager :organization="$organization" />` provides send, resend, accept/decline UI with notifications.
 Core methods:
-
 ```php
 sendInvitation();
 resendInvitation($uuid);
 acceptInvitation($uuid);
 declineInvitation($uuid);
+
 
 
 
@@ -337,6 +402,7 @@ declineInvitation($uuid);
   
   
   
+  
   ```
 - If you already extended your own policy, ensure merging the newly added abilities.
 - To leverage events, register listeners in your app (audit logging, notifications, etc.).
@@ -360,6 +426,7 @@ php artisan migrate
 
 
 
+
 ```
 ### Snippets
 
@@ -372,6 +439,7 @@ if (Gate::allows('update', $organization)) {
 
 
 
+
 ```
 Listening to an event:
 
@@ -379,6 +447,7 @@ Listening to an event:
 Event::listen(\CleaniqueCoders\LaravelOrganization\Events\OrganizationCreated::class, function ($event) {
     // custom audit log
 });
+
 
 
 
@@ -395,6 +464,7 @@ Rate limit config fragment (`config/organization.php`):
 
 
 
+
 ```
 ## Fixed Recursion - 2025-10-10
 
@@ -407,6 +477,7 @@ When users registered and received email verification, the application would han
 ```
 PHP Fatal error: Allowed memory size of 2147483648 bytes exhausted (tried to allocate 12288 bytes)
 in vendor/laravel/framework/src/Illuminate/Database/Eloquent/SoftDeletingScope.php on line 121
+
 
 
 
@@ -464,6 +535,7 @@ public function apply(Builder $builder, Model $model)
 
 
 
+
 ```
 ###### After (Fixed):
 
@@ -492,6 +564,7 @@ protected function getCurrentOrganizationId(): ?int
 
     return null;
 }
+
 
 
 
@@ -580,7 +653,6 @@ Complete documentation added for:
 - Contracts and interfaces
 **Full Changelog**: https://github.com/cleaniquecoders/laravel-organization/compare/1.0.3...1.1.0
 ## Update gitignore to include docs/ directory - 2025-10-10
-
 **Full Changelog**: https://github.com/cleaniquecoders/laravel-organization/compare/1.0.2...1.0.3
 
 ## Fix migration import models to use config - 2025-10-10
@@ -619,6 +691,7 @@ php artisan migrate
 
 
 
+
 ```
 ### 🚀 Quick Usage
 
@@ -631,6 +704,7 @@ $org->addUser($member, OrganizationRole::MEMBER);
 class Post extends Model {
     use InteractsWithOrganization;
 }
+
 
 
 
