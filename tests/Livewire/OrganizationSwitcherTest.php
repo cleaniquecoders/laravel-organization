@@ -3,7 +3,7 @@
 use CleaniqueCoders\LaravelOrganization\Database\Factories\OrganizationFactory;
 use CleaniqueCoders\LaravelOrganization\Database\Factories\UserFactory;
 use CleaniqueCoders\LaravelOrganization\Enums\OrganizationRole;
-use CleaniqueCoders\LaravelOrganization\Livewire\OrganizationSwitcher;
+use CleaniqueCoders\LaravelOrganization\Livewire\Switcher;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Livewire;
 
@@ -17,16 +17,16 @@ afterEach(function () {
     Auth::logout();
 });
 
-describe('OrganizationSwitcher Livewire Component Mounting', function () {
+describe('Switcher Livewire Component Mounting', function () {
     it('mounts with authenticated user', function () {
-        Livewire::test(OrganizationSwitcher::class)
+        Livewire::test(Switcher::class)
             ->assertSet('user.id', $this->user->id);
     });
 
     it('mounts with passed user parameter', function () {
         $otherUser = UserFactory::new()->create();
 
-        Livewire::test(OrganizationSwitcher::class, ['user' => $otherUser])
+        Livewire::test(Switcher::class, ['user' => $otherUser])
             ->assertSet('user.id', $otherUser->id);
     });
 
@@ -35,35 +35,35 @@ describe('OrganizationSwitcher Livewire Component Mounting', function () {
         $this->user->organization_id = $org->id;
         $this->user->save();
 
-        Livewire::test(OrganizationSwitcher::class)
+        Livewire::test(Switcher::class)
             ->assertSet('currentOrganization.id', $org->id);
     });
 
     it('initializes with closed dropdown', function () {
-        Livewire::test(OrganizationSwitcher::class)
+        Livewire::test(Switcher::class)
             ->assertSet('showDropdown', false);
     });
 
     it('initializes with no error message', function () {
-        Livewire::test(OrganizationSwitcher::class)
+        Livewire::test(Switcher::class)
             ->assertSet('errorMessage', null);
     });
 
     it('loads user organizations on mount', function () {
         OrganizationFactory::new()->ownedBy($this->user)->count(2)->create();
 
-        $component = Livewire::test(OrganizationSwitcher::class);
+        $component = Livewire::test(Switcher::class);
 
         expect(count($component->get('organizations')))->toBeGreaterThanOrEqual(2);
     });
 });
 
-describe('OrganizationSwitcher Livewire Component Load Organizations', function () {
+describe('Switcher Livewire Component Load Organizations', function () {
     it('loads owned organizations', function () {
         $org1 = OrganizationFactory::new()->ownedBy($this->user)->create();
         $org2 = OrganizationFactory::new()->ownedBy($this->user)->create();
 
-        $component = Livewire::test(OrganizationSwitcher::class);
+        $component = Livewire::test(Switcher::class);
 
         expect(count($component->get('organizations')))->toBe(2);
     });
@@ -75,7 +75,7 @@ describe('OrganizationSwitcher Livewire Component Load Organizations', function 
         $org2 = OrganizationFactory::new()->ownedBy($otherUser)->create();
         $org2->addUser($this->user, OrganizationRole::MEMBER);
 
-        $component = Livewire::test(OrganizationSwitcher::class);
+        $component = Livewire::test(Switcher::class);
 
         expect(count($component->get('organizations')))->toBe(2);
     });
@@ -83,7 +83,7 @@ describe('OrganizationSwitcher Livewire Component Load Organizations', function 
     it('returns empty array when user is not set', function () {
         Auth::logout();
 
-        $component = Livewire::test(OrganizationSwitcher::class);
+        $component = Livewire::test(Switcher::class);
 
         expect($component->get('organizations'))->toBeArray()
             ->and($component->get('organizations'))->toBeEmpty();
@@ -93,18 +93,18 @@ describe('OrganizationSwitcher Livewire Component Load Organizations', function 
         $org = OrganizationFactory::new()->ownedBy($this->user)->create();
         $org->addUser($this->user, OrganizationRole::ADMINISTRATOR);
 
-        $component = Livewire::test(OrganizationSwitcher::class);
+        $component = Livewire::test(Switcher::class);
 
         expect(count($component->get('organizations')))->toBe(1);
     });
 });
 
-describe('OrganizationSwitcher Livewire Component Switch Organization', function () {
+describe('Switcher Livewire Component Switch Organization', function () {
     it('can switch to owned organization', function () {
         $org1 = OrganizationFactory::new()->ownedBy($this->user)->create();
         $org2 = OrganizationFactory::new()->ownedBy($this->user)->create();
 
-        Livewire::test(OrganizationSwitcher::class)
+        Livewire::test(Switcher::class)
             ->call('switchOrganization', $org2->id)
             ->assertSet('currentOrganization.id', $org2->id)
             ->assertSet('errorMessage', null);
@@ -123,7 +123,7 @@ describe('OrganizationSwitcher Livewire Component Switch Organization', function
         $org2 = OrganizationFactory::new()->ownedBy($otherUser)->create();
         $org2->addUser($this->user, OrganizationRole::MEMBER);
 
-        Livewire::test(OrganizationSwitcher::class)
+        Livewire::test(Switcher::class)
             ->call('switchOrganization', $org2->id)
             ->assertSet('currentOrganization.id', $org2->id);
 
@@ -134,7 +134,7 @@ describe('OrganizationSwitcher Livewire Component Switch Organization', function
     it('can set organization as default', function () {
         $org = OrganizationFactory::new()->ownedBy($this->user)->create();
 
-        Livewire::test(OrganizationSwitcher::class)
+        Livewire::test(Switcher::class)
             ->call('switchOrganization', $org->id)
             ->call('setAsDefault')
             ->assertSet('isCurrentDefault', true)
@@ -148,7 +148,7 @@ describe('OrganizationSwitcher Livewire Component Switch Organization', function
     it('dispatches organization-switched event', function () {
         $org = OrganizationFactory::new()->ownedBy($this->user)->create();
 
-        Livewire::test(OrganizationSwitcher::class)
+        Livewire::test(Switcher::class)
             ->call('switchOrganization', $org->id)
             ->assertDispatched('organization-switched');
     });
@@ -156,7 +156,7 @@ describe('OrganizationSwitcher Livewire Component Switch Organization', function
     it('closes dropdown after switching', function () {
         $org = OrganizationFactory::new()->ownedBy($this->user)->create();
 
-        Livewire::test(OrganizationSwitcher::class)
+        Livewire::test(Switcher::class)
             ->set('showDropdown', true)
             ->call('switchOrganization', $org->id)
             ->assertSet('showDropdown', false);
@@ -165,14 +165,14 @@ describe('OrganizationSwitcher Livewire Component Switch Organization', function
     it('clears error message before switching', function () {
         $org = OrganizationFactory::new()->ownedBy($this->user)->create();
 
-        Livewire::test(OrganizationSwitcher::class)
+        Livewire::test(Switcher::class)
             ->set('errorMessage', 'Previous error')
             ->call('switchOrganization', $org->id)
             ->assertSet('errorMessage', null);
     });
 
     it('shows error when organization not found', function () {
-        Livewire::test(OrganizationSwitcher::class)
+        Livewire::test(Switcher::class)
             ->call('switchOrganization', 99999)
             ->assertSet('errorMessage', 'Organization not found.');
     });
@@ -181,39 +181,39 @@ describe('OrganizationSwitcher Livewire Component Switch Organization', function
         $otherUser = UserFactory::new()->create();
         $org = OrganizationFactory::new()->ownedBy($otherUser)->create();
 
-        Livewire::test(OrganizationSwitcher::class)
+        Livewire::test(Switcher::class)
             ->call('switchOrganization', $org->id)
             ->assertSet('errorMessage', 'You do not have access to this organization.');
     });
 });
 
-describe('OrganizationSwitcher Livewire Component Dropdown', function () {
+describe('Switcher Livewire Component Dropdown', function () {
     it('can toggle dropdown open', function () {
-        Livewire::test(OrganizationSwitcher::class)
+        Livewire::test(Switcher::class)
             ->call('toggleDropdown')
             ->assertSet('showDropdown', true);
     });
 
     it('can toggle dropdown closed', function () {
-        Livewire::test(OrganizationSwitcher::class)
+        Livewire::test(Switcher::class)
             ->set('showDropdown', true)
             ->call('toggleDropdown')
             ->assertSet('showDropdown', false);
     });
 
     it('can close dropdown explicitly', function () {
-        Livewire::test(OrganizationSwitcher::class)
+        Livewire::test(Switcher::class)
             ->set('showDropdown', true)
             ->call('closeDropdown')
             ->assertSet('showDropdown', false);
     });
 });
 
-describe('OrganizationSwitcher Livewire Component Refresh Organizations', function () {
+describe('Switcher Livewire Component Refresh Organizations', function () {
     it('refreshes organizations list', function () {
         $org1 = OrganizationFactory::new()->ownedBy($this->user)->create();
 
-        $component = Livewire::test(OrganizationSwitcher::class);
+        $component = Livewire::test(Switcher::class);
         $initialCount = count($component->get('organizations'));
 
         // Create a new organization
@@ -229,7 +229,7 @@ describe('OrganizationSwitcher Livewire Component Refresh Organizations', functi
         $this->user->organization_id = $org->id;
         $this->user->save();
 
-        $component = Livewire::test(OrganizationSwitcher::class);
+        $component = Livewire::test(Switcher::class);
 
         // Update the organization
         $org->update(['name' => 'Updated Name']);
@@ -240,19 +240,19 @@ describe('OrganizationSwitcher Livewire Component Refresh Organizations', functi
     });
 
     it('handles null current organization gracefully', function () {
-        Livewire::test(OrganizationSwitcher::class)
+        Livewire::test(Switcher::class)
             ->call('refreshOrganizations')
             ->assertSet('currentOrganization', null);
     });
 });
 
-describe('OrganizationSwitcher Livewire Component Handle Organization Deleted', function () {
+describe('Switcher Livewire Component Handle Organization Deleted', function () {
     it('clears current organization when deleted', function () {
         $org = OrganizationFactory::new()->ownedBy($this->user)->create();
         $this->user->organization_id = $org->id;
         $this->user->save();
 
-        Livewire::test(OrganizationSwitcher::class)
+        Livewire::test(Switcher::class)
             ->call('handleOrganizationDeleted', $org->id)
             ->assertSet('currentOrganization', null);
 
@@ -264,7 +264,7 @@ describe('OrganizationSwitcher Livewire Component Handle Organization Deleted', 
         $org1 = OrganizationFactory::new()->ownedBy($this->user)->create();
         $org2 = OrganizationFactory::new()->ownedBy($this->user)->create();
 
-        $component = Livewire::test(OrganizationSwitcher::class);
+        $component = Livewire::test(Switcher::class);
         expect(count($component->get('organizations')))->toBe(2);
 
         // Just call the handler without actually deleting
@@ -281,7 +281,7 @@ describe('OrganizationSwitcher Livewire Component Handle Organization Deleted', 
         $this->user->organization_id = $org1->id;
         $this->user->save();
 
-        Livewire::test(OrganizationSwitcher::class)
+        Livewire::test(Switcher::class)
             ->call('handleOrganizationDeleted', $org2->id)
             ->assertSet('currentOrganization.id', $org1->id);
 
@@ -290,28 +290,28 @@ describe('OrganizationSwitcher Livewire Component Handle Organization Deleted', 
     });
 });
 
-describe('OrganizationSwitcher Livewire Component Render', function () {
+describe('Switcher Livewire Component Render', function () {
     it('renders correct view', function () {
-        Livewire::test(OrganizationSwitcher::class)
+        Livewire::test(Switcher::class)
             ->assertViewIs('org::livewire.organization-switcher');
     });
 
     it('passes organizations to view', function () {
         OrganizationFactory::new()->ownedBy($this->user)->count(2)->create();
 
-        $component = Livewire::test(OrganizationSwitcher::class);
+        $component = Livewire::test(Switcher::class);
 
         expect($component->get('organizations'))->toBeArray()
             ->and(count($component->get('organizations')))->toBeGreaterThanOrEqual(2);
     });
 });
 
-describe('OrganizationSwitcher Livewire Component Edge Cases', function () {
+describe('Switcher Livewire Component Edge Cases', function () {
     it('handles user without organization_id attribute', function () {
         $this->user->organization_id = null;
         $this->user->save();
 
-        Livewire::test(OrganizationSwitcher::class)
+        Livewire::test(Switcher::class)
             ->assertSet('currentOrganization', null);
     });
 
@@ -319,7 +319,7 @@ describe('OrganizationSwitcher Livewire Component Edge Cases', function () {
         $this->user->organization_id = 99999;
         $this->user->save();
 
-        Livewire::test(OrganizationSwitcher::class)
+        Livewire::test(Switcher::class)
             ->assertSet('currentOrganization', null);
     });
 
@@ -328,7 +328,7 @@ describe('OrganizationSwitcher Livewire Component Edge Cases', function () {
         $org = OrganizationFactory::new()->ownedBy($otherUser)->create();
         $org->addUser($this->user, OrganizationRole::MEMBER, false); // inactive
 
-        Livewire::test(OrganizationSwitcher::class)
+        Livewire::test(Switcher::class)
             ->call('switchOrganization', $org->id)
             ->assertSet('errorMessage', 'You do not have access to this organization.');
     });
@@ -336,7 +336,7 @@ describe('OrganizationSwitcher Livewire Component Edge Cases', function () {
     it('returns empty organizations when loadOrganizations is called without user', function () {
         Auth::logout();
 
-        $component = Livewire::test(OrganizationSwitcher::class);
+        $component = Livewire::test(Switcher::class);
 
         expect($component->get('organizations'))->toBeArray()
             ->and($component->get('organizations'))->toBeEmpty();
@@ -348,14 +348,14 @@ describe('OrganizationSwitcher Livewire Component Edge Cases', function () {
         // Preload the organizations relationship
         $this->user->load('organizations');
 
-        $component = Livewire::test(OrganizationSwitcher::class, ['user' => $this->user]);
+        $component = Livewire::test(Switcher::class, ['user' => $this->user]);
 
         expect($component->get('organizations'))->toBeArray();
     });
 
     it('handles model not found exception during switch', function () {
         // This is already covered but let's be explicit
-        Livewire::test(OrganizationSwitcher::class)
+        Livewire::test(Switcher::class)
             ->call('switchOrganization', 99999)
             ->assertSet('errorMessage', 'Organization not found.');
     });
@@ -364,7 +364,7 @@ describe('OrganizationSwitcher Livewire Component Edge Cases', function () {
         $org = OrganizationFactory::new()->ownedBy($this->user)->create();
 
         // Component should handle any errors gracefully
-        $component = Livewire::test(OrganizationSwitcher::class);
+        $component = Livewire::test(Switcher::class);
         $component->call('switchOrganization', $org->id);
 
         // Should succeed without errors

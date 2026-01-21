@@ -43,6 +43,9 @@ class TestCase extends Orchestra
         // Configure the User and Organization models BEFORE service provider registration
         $app['config']->set('organization.user-model', User::class);
         $app['config']->set('organization.organization-model', Organization::class);
+
+        // Use array cache driver to avoid database cache table requirement (Livewire 4)
+        $app['config']->set('cache.default', 'array');
     }
 
     public function getEnvironmentSetUp($app)

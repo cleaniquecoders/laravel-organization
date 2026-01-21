@@ -3,7 +3,7 @@
 use CleaniqueCoders\LaravelOrganization\Database\Factories\OrganizationFactory;
 use CleaniqueCoders\LaravelOrganization\Database\Factories\UserFactory;
 use CleaniqueCoders\LaravelOrganization\Enums\OrganizationRole;
-use CleaniqueCoders\LaravelOrganization\Livewire\OrganizationList;
+use CleaniqueCoders\LaravelOrganization\Livewire\Listing;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Livewire;
 
@@ -17,9 +17,9 @@ afterEach(function () {
     Auth::logout();
 });
 
-describe('OrganizationList Livewire Component Initialization', function () {
+describe('Listing Livewire Component Initialization', function () {
     it('initializes with default values', function () {
-        Livewire::test(OrganizationList::class)
+        Livewire::test(Listing::class)
             ->assertSet('search', '')
             ->assertSet('sortBy', 'name')
             ->assertSet('sortDirection', 'asc')
@@ -28,17 +28,17 @@ describe('OrganizationList Livewire Component Initialization', function () {
     });
 
     it('renders correct view', function () {
-        Livewire::test(OrganizationList::class)
+        Livewire::test(Listing::class)
             ->assertViewIs('org::livewire.organization-list');
     });
 });
 
-describe('OrganizationList Livewire Component Search', function () {
+describe('Listing Livewire Component Search', function () {
     it('can search organizations by name', function () {
         OrganizationFactory::new()->ownedBy($this->user)->create(['name' => 'Acme Corp']);
         OrganizationFactory::new()->ownedBy($this->user)->create(['name' => 'Tech Solutions']);
 
-        $component = Livewire::test(OrganizationList::class)
+        $component = Livewire::test(Listing::class)
             ->set('search', 'Acme');
 
         expect($component->get('organizations')->count())->toBe(1);
@@ -54,14 +54,14 @@ describe('OrganizationList Livewire Component Search', function () {
             'description' => 'Hardware sales',
         ]);
 
-        $component = Livewire::test(OrganizationList::class)
+        $component = Livewire::test(Listing::class)
             ->set('search', 'Software');
 
         expect($component->get('organizations')->count())->toBe(1);
     });
 
     it('resets page when search is updated', function () {
-        Livewire::test(OrganizationList::class)
+        Livewire::test(Listing::class)
             ->set('search', 'test');
         // Page is reset internally, just verify search was set
         expect(true)->toBeTrue();
@@ -70,23 +70,23 @@ describe('OrganizationList Livewire Component Search', function () {
     it('returns empty when search has no matches', function () {
         OrganizationFactory::new()->ownedBy($this->user)->create(['name' => 'Acme Corp']);
 
-        $component = Livewire::test(OrganizationList::class)
+        $component = Livewire::test(Listing::class)
             ->set('search', 'Nonexistent');
 
         expect($component->get('organizations')->count())->toBe(0);
     });
 });
 
-describe('OrganizationList Livewire Component Sorting', function () {
+describe('Listing Livewire Component Sorting', function () {
     it('can sort by field', function () {
-        Livewire::test(OrganizationList::class)
+        Livewire::test(Listing::class)
             ->call('sortBy', 'created_at')
             ->assertSet('sortBy', 'created_at')
             ->assertSet('sortDirection', 'asc');
     });
 
     it('toggles sort direction when clicking same field', function () {
-        Livewire::test(OrganizationList::class)
+        Livewire::test(Listing::class)
             ->set('sortBy', 'name')
             ->set('sortDirection', 'asc')
             ->call('sortBy', 'name')
@@ -94,7 +94,7 @@ describe('OrganizationList Livewire Component Sorting', function () {
     });
 
     it('resets sort direction to asc when changing field', function () {
-        Livewire::test(OrganizationList::class)
+        Livewire::test(Listing::class)
             ->set('sortBy', 'name')
             ->set('sortDirection', 'desc')
             ->call('sortBy', 'created_at')
@@ -103,14 +103,14 @@ describe('OrganizationList Livewire Component Sorting', function () {
     });
 
     it('resets page when sorting', function () {
-        Livewire::test(OrganizationList::class)
+        Livewire::test(Listing::class)
             ->call('sortBy', 'name');
         // Page is reset internally
         expect(true)->toBeTrue();
     });
 });
 
-describe('OrganizationList Livewire Component Filtering', function () {
+describe('Listing Livewire Component Filtering', function () {
     it('filters owned organizations', function () {
         $org1 = OrganizationFactory::new()->ownedBy($this->user)->create();
 
@@ -118,7 +118,7 @@ describe('OrganizationList Livewire Component Filtering', function () {
         $org2 = OrganizationFactory::new()->ownedBy($otherUser)->create();
         $org2->addUser($this->user, OrganizationRole::MEMBER);
 
-        $component = Livewire::test(OrganizationList::class)
+        $component = Livewire::test(Listing::class)
             ->set('filter', 'owned');
 
         expect($component->get('organizations')->count())->toBe(1);
@@ -131,7 +131,7 @@ describe('OrganizationList Livewire Component Filtering', function () {
         $org2 = OrganizationFactory::new()->ownedBy($otherUser)->create();
         $org2->addUser($this->user, OrganizationRole::MEMBER);
 
-        $component = Livewire::test(OrganizationList::class)
+        $component = Livewire::test(Listing::class)
             ->set('filter', 'member');
 
         expect($component->get('organizations')->count())->toBe(1);
@@ -144,14 +144,14 @@ describe('OrganizationList Livewire Component Filtering', function () {
         $org2 = OrganizationFactory::new()->ownedBy($otherUser)->create();
         $org2->addUser($this->user, OrganizationRole::MEMBER);
 
-        $component = Livewire::test(OrganizationList::class)
+        $component = Livewire::test(Listing::class)
             ->set('filter', 'all');
 
         expect($component->get('organizations')->count())->toBe(2);
     });
 
     it('resets page when filter is updated', function () {
-        Livewire::test(OrganizationList::class)
+        Livewire::test(Listing::class)
             ->set('filter', 'owned');
         // Page is reset internally
         expect(true)->toBeTrue();
@@ -162,16 +162,16 @@ describe('OrganizationList Livewire Component Filtering', function () {
         $org = OrganizationFactory::new()->ownedBy($otherUser)->create();
         $org->addUser($this->user, OrganizationRole::MEMBER, false);
 
-        $component = Livewire::test(OrganizationList::class)
+        $component = Livewire::test(Listing::class)
             ->set('filter', 'member');
 
         expect($component->get('organizations')->count())->toBe(0);
     });
 });
 
-describe('OrganizationList Livewire Component Reset Filters', function () {
+describe('Listing Livewire Component Reset Filters', function () {
     it('can reset all filters', function () {
-        Livewire::test(OrganizationList::class)
+        Livewire::test(Listing::class)
             ->set('search', 'test')
             ->set('sortBy', 'created_at')
             ->set('sortDirection', 'desc')
@@ -184,18 +184,18 @@ describe('OrganizationList Livewire Component Reset Filters', function () {
     });
 
     it('resets page when resetting filters', function () {
-        Livewire::test(OrganizationList::class)
+        Livewire::test(Listing::class)
             ->call('resetFilters');
         // Page is reset internally
         expect(true)->toBeTrue();
     });
 });
 
-describe('OrganizationList Livewire Component Actions', function () {
+describe('Listing Livewire Component Actions', function () {
     it('dispatches event when editing organization', function () {
         $org = OrganizationFactory::new()->ownedBy($this->user)->create();
 
-        Livewire::test(OrganizationList::class)
+        Livewire::test(Listing::class)
             ->call('editOrganization', $org->id)
             ->assertDispatched('show-manage-organization');
     });
@@ -203,7 +203,7 @@ describe('OrganizationList Livewire Component Actions', function () {
     it('dispatches event when deleting organization', function () {
         $org = OrganizationFactory::new()->ownedBy($this->user)->create();
 
-        Livewire::test(OrganizationList::class)
+        Livewire::test(Listing::class)
             ->call('deleteOrganization', $org->id)
             ->assertDispatched('show-manage-organization');
     });
@@ -211,7 +211,7 @@ describe('OrganizationList Livewire Component Actions', function () {
     it('can switch to organization', function () {
         $org = OrganizationFactory::new()->ownedBy($this->user)->create();
 
-        Livewire::test(OrganizationList::class)
+        Livewire::test(Listing::class)
             ->call('switchToOrganization', $org->id)
             ->assertSet('errorMessage', null)
             ->assertDispatched('organization-switched');
@@ -226,7 +226,7 @@ describe('OrganizationList Livewire Component Actions', function () {
     it('can set organization as default', function () {
         $org = OrganizationFactory::new()->ownedBy($this->user)->create();
 
-        Livewire::test(OrganizationList::class)
+        Livewire::test(Listing::class)
             ->call('setAsDefault', $org->id)
             ->assertSet('successMessage', __('Default organization updated.'))
             ->assertDispatched('default-organization-changed');
@@ -237,7 +237,7 @@ describe('OrganizationList Livewire Component Actions', function () {
     });
 
     it('shows error when switching to non-existent organization', function () {
-        Livewire::test(OrganizationList::class)
+        Livewire::test(Listing::class)
             ->call('switchToOrganization', 99999)
             ->assertSet('errorMessage', 'Organization not found.');
     });
@@ -246,7 +246,7 @@ describe('OrganizationList Livewire Component Actions', function () {
         $otherUser = UserFactory::new()->create();
         $org = OrganizationFactory::new()->ownedBy($otherUser)->create();
 
-        Livewire::test(OrganizationList::class)
+        Livewire::test(Listing::class)
             ->call('switchToOrganization', $org->id)
             ->assertSet('errorMessage', 'You do not have access to this organization.');
     });
@@ -254,18 +254,18 @@ describe('OrganizationList Livewire Component Actions', function () {
     it('clears error message before switching', function () {
         $org = OrganizationFactory::new()->ownedBy($this->user)->create();
 
-        Livewire::test(OrganizationList::class)
+        Livewire::test(Listing::class)
             ->set('errorMessage', 'Previous error')
             ->call('switchToOrganization', $org->id)
             ->assertSet('errorMessage', null);
     });
 });
 
-describe('OrganizationList Livewire Component User Roles', function () {
+describe('Listing Livewire Component User Roles', function () {
     it('shows owner role for owned organizations', function () {
         $org = OrganizationFactory::new()->ownedBy($this->user)->create();
 
-        $component = Livewire::test(OrganizationList::class);
+        $component = Livewire::test(Listing::class);
         $role = $component->instance()->getUserRoleInOrganization($org);
 
         expect($role)->toBe('Owner');
@@ -276,7 +276,7 @@ describe('OrganizationList Livewire Component User Roles', function () {
         $org = OrganizationFactory::new()->ownedBy($otherUser)->create();
         $org->addUser($this->user, OrganizationRole::ADMINISTRATOR);
 
-        $component = Livewire::test(OrganizationList::class);
+        $component = Livewire::test(Listing::class);
         $role = $component->instance()->getUserRoleInOrganization($org);
 
         expect($role)->toBe('Administrator');
@@ -287,18 +287,18 @@ describe('OrganizationList Livewire Component User Roles', function () {
         $org = OrganizationFactory::new()->ownedBy($otherUser)->create();
         $org->addUser($this->user, OrganizationRole::MEMBER);
 
-        $component = Livewire::test(OrganizationList::class);
+        $component = Livewire::test(Listing::class);
         $role = $component->instance()->getUserRoleInOrganization($org);
 
         expect($role)->toBe('Member');
     });
 });
 
-describe('OrganizationList Livewire Component Edge Cases', function () {
+describe('Listing Livewire Component Edge Cases', function () {
     it('returns empty collection when user is not authenticated', function () {
         Auth::logout();
 
-        $component = Livewire::test(OrganizationList::class);
+        $component = Livewire::test(Listing::class);
 
         expect($component->get('organizations'))->toBeInstanceOf(\Illuminate\Support\Collection::class)
             ->and($component->get('organizations')->isEmpty())->toBeTrue();
@@ -307,7 +307,7 @@ describe('OrganizationList Livewire Component Edge Cases', function () {
     it('paginates organizations', function () {
         OrganizationFactory::new()->ownedBy($this->user)->count(15)->create();
 
-        $component = Livewire::test(OrganizationList::class);
+        $component = Livewire::test(Listing::class);
 
         expect($component->get('organizations')->count())->toBe(10)
             ->and($component->get('organizations')->total())->toBe(15);
@@ -315,7 +315,7 @@ describe('OrganizationList Livewire Component Edge Cases', function () {
 
     it('handles errors when switching to invalid organization', function () {
         // Try to switch to a non-existent organization ID
-        $component = Livewire::test(OrganizationList::class);
+        $component = Livewire::test(Listing::class);
 
         $component->call('switchToOrganization', 99999);
 
@@ -328,7 +328,7 @@ describe('OrganizationList Livewire Component Edge Cases', function () {
 
         // The component should handle any database errors
         // In a real scenario, this might happen if DB connection fails
-        $component = Livewire::test(OrganizationList::class);
+        $component = Livewire::test(Listing::class);
 
         // Just verify the component can handle switch without crashing
         $component->call('switchToOrganization', $org->id);

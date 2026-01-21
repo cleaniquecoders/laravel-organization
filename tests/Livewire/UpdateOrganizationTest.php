@@ -3,7 +3,7 @@
 use CleaniqueCoders\LaravelOrganization\Database\Factories\OrganizationFactory;
 use CleaniqueCoders\LaravelOrganization\Database\Factories\UserFactory;
 use CleaniqueCoders\LaravelOrganization\Enums\OrganizationRole;
-use CleaniqueCoders\LaravelOrganization\Livewire\UpdateOrganization;
+use CleaniqueCoders\LaravelOrganization\Livewire\Update;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Livewire;
 
@@ -18,9 +18,9 @@ afterEach(function () {
     Auth::logout();
 });
 
-describe('UpdateOrganization Livewire Component Initialization', function () {
+describe('Update Livewire Component Initialization', function () {
     it('initializes with default values', function () {
-        Livewire::test(UpdateOrganization::class)
+        Livewire::test(Update::class)
             ->assertSet('organization', null)
             ->assertSet('showModal', false)
             ->assertSet('mode', 'edit')
@@ -32,14 +32,14 @@ describe('UpdateOrganization Livewire Component Initialization', function () {
     });
 
     it('renders correct view', function () {
-        Livewire::test(UpdateOrganization::class)
+        Livewire::test(Update::class)
             ->assertViewIs('org::livewire.update-organization');
     });
 });
 
-describe('UpdateOrganization Livewire Component Show Manage Modal', function () {
+describe('Update Livewire Component Show Manage Modal', function () {
     it('shows modal in edit mode', function () {
-        Livewire::test(UpdateOrganization::class)
+        Livewire::test(Update::class)
             ->call('showManageModal', ['organizationId' => $this->organization->id, 'mode' => 'edit'])
             ->assertSet('showModal', true)
             ->assertSet('mode', 'edit')
@@ -47,28 +47,28 @@ describe('UpdateOrganization Livewire Component Show Manage Modal', function () 
     });
 
     it('shows modal in delete mode', function () {
-        Livewire::test(UpdateOrganization::class)
+        Livewire::test(Update::class)
             ->call('showManageModal', ['organizationId' => $this->organization->id, 'mode' => 'delete'])
             ->assertSet('showModal', true)
             ->assertSet('mode', 'delete');
     });
 
     it('loads organization data when showing modal', function () {
-        Livewire::test(UpdateOrganization::class)
+        Livewire::test(Update::class)
             ->call('showManageModal', ['organizationId' => $this->organization->id, 'mode' => 'edit'])
             ->assertSet('name', $this->organization->name)
             ->assertSet('description', $this->organization->description ?? '');
     });
 
     it('shows error when organization ID missing', function () {
-        Livewire::test(UpdateOrganization::class)
+        Livewire::test(Update::class)
             ->call('showManageModal', ['mode' => 'edit'])
             ->assertSet('errorMessage', 'Organization ID is required.')
             ->assertSet('showModal', false);
     });
 
     it('shows error when organization not found', function () {
-        Livewire::test(UpdateOrganization::class)
+        Livewire::test(Update::class)
             ->call('showManageModal', ['organizationId' => 99999, 'mode' => 'edit'])
             ->assertSet('errorMessage', 'Organization not found.')
             ->assertSet('showModal', false);
@@ -78,7 +78,7 @@ describe('UpdateOrganization Livewire Component Show Manage Modal', function () 
         $otherUser = UserFactory::new()->create();
         $otherOrg = OrganizationFactory::new()->ownedBy($otherUser)->create();
 
-        Livewire::test(UpdateOrganization::class)
+        Livewire::test(Update::class)
             ->call('showManageModal', ['organizationId' => $otherOrg->id, 'mode' => 'edit'])
             ->assertSet('errorMessage', 'You do not have permission to manage this organization.')
             ->assertSet('showModal', false);
@@ -89,14 +89,14 @@ describe('UpdateOrganization Livewire Component Show Manage Modal', function () 
         $otherOrg = OrganizationFactory::new()->ownedBy($otherUser)->create();
         $otherOrg->addUser($this->user, OrganizationRole::ADMINISTRATOR);
 
-        Livewire::test(UpdateOrganization::class)
+        Livewire::test(Update::class)
             ->call('showManageModal', ['organizationId' => $otherOrg->id, 'mode' => 'edit'])
             ->assertSet('showModal', true)
             ->assertSet('errorMessage', null);
     });
 
     it('resets validation when showing modal', function () {
-        Livewire::test(UpdateOrganization::class)
+        Livewire::test(Update::class)
             ->set('name', '')
             ->call('updateOrganization')
             ->assertHasErrors('name')
@@ -105,23 +105,23 @@ describe('UpdateOrganization Livewire Component Show Manage Modal', function () 
     });
 
     it('clears error message when showing modal', function () {
-        Livewire::test(UpdateOrganization::class)
+        Livewire::test(Update::class)
             ->set('errorMessage', 'Previous error')
             ->call('showManageModal', ['organizationId' => $this->organization->id, 'mode' => 'edit'])
             ->assertSet('errorMessage', null);
     });
 });
 
-describe('UpdateOrganization Livewire Component Close Modal', function () {
+describe('Update Livewire Component Close Modal', function () {
     it('can close modal', function () {
-        Livewire::test(UpdateOrganization::class)
+        Livewire::test(Update::class)
             ->call('showManageModal', ['organizationId' => $this->organization->id, 'mode' => 'edit'])
             ->call('closeModal')
             ->assertSet('showModal', false);
     });
 
     it('resets form fields when closing', function () {
-        Livewire::test(UpdateOrganization::class)
+        Livewire::test(Update::class)
             ->call('showManageModal', ['organizationId' => $this->organization->id, 'mode' => 'edit'])
             ->set('name', 'Modified')
             ->call('closeModal')
@@ -134,7 +134,7 @@ describe('UpdateOrganization Livewire Component Close Modal', function () {
     });
 
     it('closes delete confirmation when closing modal', function () {
-        Livewire::test(UpdateOrganization::class)
+        Livewire::test(Update::class)
             ->call('showManageModal', ['organizationId' => $this->organization->id, 'mode' => 'delete'])
             ->set('showDeleteConfirmation', true)
             ->call('closeModal')
@@ -142,9 +142,9 @@ describe('UpdateOrganization Livewire Component Close Modal', function () {
     });
 });
 
-describe('UpdateOrganization Livewire Component Validation', function () {
+describe('Update Livewire Component Validation', function () {
     it('validates required name', function () {
-        Livewire::test(UpdateOrganization::class)
+        Livewire::test(Update::class)
             ->call('showManageModal', ['organizationId' => $this->organization->id, 'mode' => 'edit'])
             ->set('name', '')
             ->call('updateOrganization')
@@ -152,7 +152,7 @@ describe('UpdateOrganization Livewire Component Validation', function () {
     });
 
     it('validates minimum name length', function () {
-        Livewire::test(UpdateOrganization::class)
+        Livewire::test(Update::class)
             ->call('showManageModal', ['organizationId' => $this->organization->id, 'mode' => 'edit'])
             ->set('name', 'A')
             ->call('updateOrganization')
@@ -160,7 +160,7 @@ describe('UpdateOrganization Livewire Component Validation', function () {
     });
 
     it('validates maximum name length', function () {
-        Livewire::test(UpdateOrganization::class)
+        Livewire::test(Update::class)
             ->call('showManageModal', ['organizationId' => $this->organization->id, 'mode' => 'edit'])
             ->set('name', str_repeat('A', 256))
             ->call('updateOrganization')
@@ -170,7 +170,7 @@ describe('UpdateOrganization Livewire Component Validation', function () {
     it('validates unique name', function () {
         $org2 = OrganizationFactory::new()->ownedBy($this->user)->create(['name' => 'Existing Org']);
 
-        Livewire::test(UpdateOrganization::class)
+        Livewire::test(Update::class)
             ->call('showManageModal', ['organizationId' => $this->organization->id, 'mode' => 'edit'])
             ->set('name', 'Existing Org')
             ->call('updateOrganization')
@@ -178,7 +178,7 @@ describe('UpdateOrganization Livewire Component Validation', function () {
     });
 
     it('allows keeping same name', function () {
-        Livewire::test(UpdateOrganization::class)
+        Livewire::test(Update::class)
             ->call('showManageModal', ['organizationId' => $this->organization->id, 'mode' => 'edit'])
             ->set('name', $this->organization->name)
             ->call('updateOrganization')
@@ -186,7 +186,7 @@ describe('UpdateOrganization Livewire Component Validation', function () {
     });
 
     it('validates maximum description length', function () {
-        Livewire::test(UpdateOrganization::class)
+        Livewire::test(Update::class)
             ->call('showManageModal', ['organizationId' => $this->organization->id, 'mode' => 'edit'])
             ->set('description', str_repeat('A', 1001))
             ->call('updateOrganization')
@@ -194,23 +194,23 @@ describe('UpdateOrganization Livewire Component Validation', function () {
     });
 
     it('validates name on update', function () {
-        Livewire::test(UpdateOrganization::class)
+        Livewire::test(Update::class)
             ->call('showManageModal', ['organizationId' => $this->organization->id, 'mode' => 'edit'])
             ->set('name', 'A')
             ->assertHasErrors(['name' => 'min']);
     });
 
     it('validates description on update', function () {
-        Livewire::test(UpdateOrganization::class)
+        Livewire::test(Update::class)
             ->call('showManageModal', ['organizationId' => $this->organization->id, 'mode' => 'edit'])
             ->set('description', str_repeat('A', 1001))
             ->assertHasErrors(['description' => 'max']);
     });
 });
 
-describe('UpdateOrganization Livewire Component Update', function () {
+describe('Update Livewire Component Update', function () {
     it('can update organization name', function () {
-        Livewire::test(UpdateOrganization::class)
+        Livewire::test(Update::class)
             ->call('showManageModal', ['organizationId' => $this->organization->id, 'mode' => 'edit'])
             ->set('name', 'Updated Organization')
             ->call('updateOrganization')
@@ -221,7 +221,7 @@ describe('UpdateOrganization Livewire Component Update', function () {
     });
 
     it('can update organization description', function () {
-        Livewire::test(UpdateOrganization::class)
+        Livewire::test(Update::class)
             ->call('showManageModal', ['organizationId' => $this->organization->id, 'mode' => 'edit'])
             ->set('description', 'Updated description')
             ->call('updateOrganization')
@@ -232,7 +232,7 @@ describe('UpdateOrganization Livewire Component Update', function () {
     });
 
     it('closes modal after successful update', function () {
-        Livewire::test(UpdateOrganization::class)
+        Livewire::test(Update::class)
             ->call('showManageModal', ['organizationId' => $this->organization->id, 'mode' => 'edit'])
             ->set('name', 'Updated Organization')
             ->call('updateOrganization')
@@ -240,7 +240,7 @@ describe('UpdateOrganization Livewire Component Update', function () {
     });
 
     it('dispatches organization-updated event', function () {
-        Livewire::test(UpdateOrganization::class)
+        Livewire::test(Update::class)
             ->call('showManageModal', ['organizationId' => $this->organization->id, 'mode' => 'edit'])
             ->set('name', 'Updated Organization')
             ->call('updateOrganization')
@@ -248,7 +248,7 @@ describe('UpdateOrganization Livewire Component Update', function () {
     });
 
     it('shows error when organization not found during update', function () {
-        Livewire::test(UpdateOrganization::class)
+        Livewire::test(Update::class)
             ->set('organization', null)
             ->set('name', 'Test Name') // Set valid name to pass validation
             ->call('updateOrganization')
@@ -256,7 +256,7 @@ describe('UpdateOrganization Livewire Component Update', function () {
     });
 
     it('shows error message on validation failure', function () {
-        Livewire::test(UpdateOrganization::class)
+        Livewire::test(Update::class)
             ->call('showManageModal', ['organizationId' => $this->organization->id, 'mode' => 'edit'])
             ->set('name', '')
             ->call('updateOrganization')
@@ -264,7 +264,7 @@ describe('UpdateOrganization Livewire Component Update', function () {
     });
 
     it('clears error message before update', function () {
-        Livewire::test(UpdateOrganization::class)
+        Livewire::test(Update::class)
             ->call('showManageModal', ['organizationId' => $this->organization->id, 'mode' => 'edit'])
             ->set('errorMessage', 'Previous error')
             ->set('name', 'Updated')
@@ -275,16 +275,16 @@ describe('UpdateOrganization Livewire Component Update', function () {
     });
 });
 
-describe('UpdateOrganization Livewire Component Delete Confirmation', function () {
+describe('Update Livewire Component Delete Confirmation', function () {
     it('can show delete confirmation', function () {
-        Livewire::test(UpdateOrganization::class)
+        Livewire::test(Update::class)
             ->call('confirmDelete')
             ->assertSet('showDeleteConfirmation', true)
             ->assertSet('confirmationName', '');
     });
 
     it('can cancel delete', function () {
-        Livewire::test(UpdateOrganization::class)
+        Livewire::test(Update::class)
             ->set('showDeleteConfirmation', true)
             ->set('confirmationName', 'test')
             ->call('cancelDelete')
@@ -293,9 +293,9 @@ describe('UpdateOrganization Livewire Component Delete Confirmation', function (
     });
 });
 
-describe('UpdateOrganization Livewire Component Delete', function () {
+describe('Update Livewire Component Delete', function () {
     it('validates confirmation name before deleting', function () {
-        Livewire::test(UpdateOrganization::class)
+        Livewire::test(Update::class)
             ->call('showManageModal', ['organizationId' => $this->organization->id, 'mode' => 'delete'])
             ->set('confirmationName', 'Wrong Name')
             ->call('deleteOrganization')
@@ -307,7 +307,7 @@ describe('UpdateOrganization Livewire Component Delete', function () {
         // Create another organization so user has multiple
         OrganizationFactory::new()->ownedBy($this->user)->create();
 
-        Livewire::test(UpdateOrganization::class)
+        Livewire::test(Update::class)
             ->call('showManageModal', ['organizationId' => $this->organization->id, 'mode' => 'delete'])
             ->set('confirmationName', $this->organization->name)
             ->call('deleteOrganization')
@@ -315,7 +315,7 @@ describe('UpdateOrganization Livewire Component Delete', function () {
     });
 
     it('shows error when organization not found during delete', function () {
-        Livewire::test(UpdateOrganization::class)
+        Livewire::test(Update::class)
             ->set('organization', null)
             ->call('deleteOrganization')
             ->assertSet('errorMessage', 'Organization not found.');
@@ -324,7 +324,7 @@ describe('UpdateOrganization Livewire Component Delete', function () {
     it('closes modal after successful delete', function () {
         OrganizationFactory::new()->ownedBy($this->user)->create();
 
-        Livewire::test(UpdateOrganization::class)
+        Livewire::test(Update::class)
             ->call('showManageModal', ['organizationId' => $this->organization->id, 'mode' => 'delete'])
             ->set('confirmationName', $this->organization->name)
             ->call('deleteOrganization')
@@ -334,7 +334,7 @@ describe('UpdateOrganization Livewire Component Delete', function () {
     it('dispatches organization-deleted event', function () {
         OrganizationFactory::new()->ownedBy($this->user)->create();
 
-        Livewire::test(UpdateOrganization::class)
+        Livewire::test(Update::class)
             ->call('showManageModal', ['organizationId' => $this->organization->id, 'mode' => 'delete'])
             ->set('confirmationName', $this->organization->name)
             ->call('deleteOrganization')
@@ -344,7 +344,7 @@ describe('UpdateOrganization Livewire Component Delete', function () {
     it('clears error message before delete', function () {
         OrganizationFactory::new()->ownedBy($this->user)->create();
 
-        Livewire::test(UpdateOrganization::class)
+        Livewire::test(Update::class)
             ->call('showManageModal', ['organizationId' => $this->organization->id, 'mode' => 'delete'])
             ->set('errorMessage', 'Previous error')
             ->set('confirmationName', $this->organization->name)
@@ -355,9 +355,9 @@ describe('UpdateOrganization Livewire Component Delete', function () {
     });
 });
 
-describe('UpdateOrganization Livewire Component Load Organization Data', function () {
+describe('Update Livewire Component Load Organization Data', function () {
     it('loads organization data correctly', function () {
-        $component = Livewire::test(UpdateOrganization::class);
+        $component = Livewire::test(Update::class);
         $component->set('organization', $this->organization);
         $component->call('loadOrganizationData');
 
@@ -368,7 +368,7 @@ describe('UpdateOrganization Livewire Component Load Organization Data', functio
     it('handles null description', function () {
         $org = OrganizationFactory::new()->ownedBy($this->user)->create(['description' => null]);
 
-        $component = Livewire::test(UpdateOrganization::class);
+        $component = Livewire::test(Update::class);
         $component->set('organization', $org);
         $component->call('loadOrganizationData');
 
@@ -376,7 +376,7 @@ describe('UpdateOrganization Livewire Component Load Organization Data', functio
     });
 
     it('handles null organization', function () {
-        $component = Livewire::test(UpdateOrganization::class);
+        $component = Livewire::test(Update::class);
         $component->set('organization', null);
         $component->call('loadOrganizationData');
 
@@ -385,12 +385,12 @@ describe('UpdateOrganization Livewire Component Load Organization Data', functio
     });
 });
 
-describe('UpdateOrganization Livewire Component Exception Handling', function () {
+describe('Update Livewire Component Exception Handling', function () {
     it('handles invalid argument exception during update', function () {
         // Try to update with a name that already exists
         $org2 = OrganizationFactory::new()->ownedBy($this->user)->create(['name' => 'Existing Name']);
 
-        Livewire::test(UpdateOrganization::class)
+        Livewire::test(Update::class)
             ->call('showManageModal', ['organizationId' => $this->organization->id, 'mode' => 'edit'])
             ->set('name', 'Existing Name')
             ->call('updateOrganization')
@@ -399,7 +399,7 @@ describe('UpdateOrganization Livewire Component Exception Handling', function ()
 
     it('handles database errors during update', function () {
         // Just verify that component handles errors gracefully
-        Livewire::test(UpdateOrganization::class)
+        Livewire::test(Update::class)
             ->call('showManageModal', ['organizationId' => $this->organization->id, 'mode' => 'edit'])
             ->set('name', 'Valid Update Name')
             ->call('updateOrganization');
@@ -410,7 +410,7 @@ describe('UpdateOrganization Livewire Component Exception Handling', function ()
 
     it('handles exception when trying to delete last organization', function () {
         // User has only one organization - should not be able to delete
-        Livewire::test(UpdateOrganization::class)
+        Livewire::test(Update::class)
             ->call('showManageModal', ['organizationId' => $this->organization->id, 'mode' => 'delete'])
             ->set('confirmationName', $this->organization->name)
             ->call('deleteOrganization')
@@ -422,7 +422,7 @@ describe('UpdateOrganization Livewire Component Exception Handling', function ()
         OrganizationFactory::new()->ownedBy($this->user)->create();
 
         // Component should handle errors gracefully
-        Livewire::test(UpdateOrganization::class)
+        Livewire::test(Update::class)
             ->call('showManageModal', ['organizationId' => $this->organization->id, 'mode' => 'delete'])
             ->set('confirmationName', $this->organization->name)
             ->call('deleteOrganization');
@@ -432,7 +432,7 @@ describe('UpdateOrganization Livewire Component Exception Handling', function ()
     });
 
     it('isUserAdministrator returns false when organization is null', function () {
-        $component = new UpdateOrganization;
+        $component = new Update;
         $component->organization = null;
 
         $reflection = new \ReflectionClass($component);

@@ -2,7 +2,7 @@
 
 use CleaniqueCoders\LaravelOrganization\Database\Factories\OrganizationFactory;
 use CleaniqueCoders\LaravelOrganization\Database\Factories\UserFactory;
-use CleaniqueCoders\LaravelOrganization\Livewire\CreateOrganization;
+use CleaniqueCoders\LaravelOrganization\Livewire\Create;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
 use Livewire\Livewire;
@@ -17,15 +17,15 @@ afterEach(function () {
     Auth::logout();
 });
 
-describe('CreateOrganization Livewire Component Modal', function () {
+describe('Create Livewire Component Modal', function () {
     it('can show modal', function () {
-        Livewire::test(CreateOrganization::class)
+        Livewire::test(Create::class)
             ->call('showModal')
             ->assertSet('showModal', true);
     });
 
     it('can close modal', function () {
-        Livewire::test(CreateOrganization::class)
+        Livewire::test(Create::class)
             ->set('showModal', true)
             ->set('name', 'Test Organization')
             ->call('closeModal')
@@ -35,7 +35,7 @@ describe('CreateOrganization Livewire Component Modal', function () {
     });
 
     it('resets validation when showing modal', function () {
-        Livewire::test(CreateOrganization::class)
+        Livewire::test(Create::class)
             ->set('name', '')
             ->call('createOrganization')
             ->assertHasErrors('name')
@@ -44,29 +44,29 @@ describe('CreateOrganization Livewire Component Modal', function () {
     });
 
     it('listens to show-create-organization event', function () {
-        Livewire::test(CreateOrganization::class)
+        Livewire::test(Create::class)
             ->dispatch('show-create-organization')
             ->assertSet('showModal', true);
     });
 });
 
-describe('CreateOrganization Livewire Component Validation', function () {
+describe('Create Livewire Component Validation', function () {
     it('validates required name', function () {
-        Livewire::test(CreateOrganization::class)
+        Livewire::test(Create::class)
             ->set('name', '')
             ->call('createOrganization')
             ->assertHasErrors(['name' => 'required']);
     });
 
     it('validates minimum name length', function () {
-        Livewire::test(CreateOrganization::class)
+        Livewire::test(Create::class)
             ->set('name', 'A')
             ->call('createOrganization')
             ->assertHasErrors(['name' => 'min']);
     });
 
     it('validates maximum name length', function () {
-        Livewire::test(CreateOrganization::class)
+        Livewire::test(Create::class)
             ->set('name', str_repeat('A', 256))
             ->call('createOrganization')
             ->assertHasErrors(['name' => 'max']);
@@ -75,14 +75,14 @@ describe('CreateOrganization Livewire Component Validation', function () {
     it('validates unique organization name', function () {
         OrganizationFactory::new()->create(['name' => 'Existing Organization']);
 
-        Livewire::test(CreateOrganization::class)
+        Livewire::test(Create::class)
             ->set('name', 'Existing Organization')
             ->call('createOrganization')
             ->assertHasErrors(['name' => 'unique']);
     });
 
     it('validates maximum description length', function () {
-        Livewire::test(CreateOrganization::class)
+        Livewire::test(Create::class)
             ->set('name', 'Valid Organization')
             ->set('description', str_repeat('A', 1001))
             ->call('createOrganization')
@@ -90,21 +90,21 @@ describe('CreateOrganization Livewire Component Validation', function () {
     });
 
     it('validates name on update', function () {
-        Livewire::test(CreateOrganization::class)
+        Livewire::test(Create::class)
             ->set('name', 'A')
             ->assertHasErrors(['name' => 'min']);
     });
 
     it('validates description on update', function () {
-        Livewire::test(CreateOrganization::class)
+        Livewire::test(Create::class)
             ->set('description', str_repeat('A', 1001))
             ->assertHasErrors(['description' => 'max']);
     });
 });
 
-describe('CreateOrganization Livewire Component Creation', function () {
+describe('Create Livewire Component Creation', function () {
     it('can create organization successfully', function () {
-        Livewire::test(CreateOrganization::class)
+        Livewire::test(Create::class)
             ->set('name', 'New Organization')
             ->set('description', 'A great organization')
             ->call('createOrganization')
@@ -121,7 +121,7 @@ describe('CreateOrganization Livewire Component Creation', function () {
     });
 
     it('can create organization without description', function () {
-        Livewire::test(CreateOrganization::class)
+        Livewire::test(Create::class)
             ->set('name', 'New Organization')
             ->call('createOrganization')
             ->assertHasNoErrors();
@@ -133,7 +133,7 @@ describe('CreateOrganization Livewire Component Creation', function () {
     });
 
     it('can set organization as current', function () {
-        Livewire::test(CreateOrganization::class)
+        Livewire::test(Create::class)
             ->set('name', 'Current Organization')
             ->set('setAsCurrent', true)
             ->call('createOrganization')
@@ -146,21 +146,21 @@ describe('CreateOrganization Livewire Component Creation', function () {
     });
 
     it('dispatches organization-created event', function () {
-        Livewire::test(CreateOrganization::class)
+        Livewire::test(Create::class)
             ->set('name', 'New Organization')
             ->call('createOrganization')
             ->assertDispatched('organization-created');
     });
 
     it('dispatches organization-switched event', function () {
-        Livewire::test(CreateOrganization::class)
+        Livewire::test(Create::class)
             ->set('name', 'New Organization')
             ->call('createOrganization')
             ->assertDispatched('organization-switched');
     });
 
     it('resets form after successful creation', function () {
-        Livewire::test(CreateOrganization::class)
+        Livewire::test(Create::class)
             ->set('name', 'New Organization')
             ->set('description', 'Test description')
             ->set('setAsCurrent', true)
@@ -172,7 +172,7 @@ describe('CreateOrganization Livewire Component Creation', function () {
     });
 });
 
-describe('CreateOrganization Livewire Component Rate Limiting', function () {
+describe('Create Livewire Component Rate Limiting', function () {
     it('enforces rate limiting', function () {
         $rateLimitKey = 'create-organization:'.$this->user->id;
         $maxAttempts = config('organization.rate_limits.create_organization.max_attempts', 5);
@@ -183,7 +183,7 @@ describe('CreateOrganization Livewire Component Rate Limiting', function () {
             RateLimiter::hit($rateLimitKey, 60 * 60);
         }
 
-        Livewire::test(CreateOrganization::class)
+        Livewire::test(Create::class)
             ->set('name', 'New Organization')
             ->call('createOrganization')
             ->assertSet('errorMessage', function ($message) {
@@ -192,7 +192,7 @@ describe('CreateOrganization Livewire Component Rate Limiting', function () {
     });
 
     it('clears error message before creating', function () {
-        Livewire::test(CreateOrganization::class)
+        Livewire::test(Create::class)
             ->set('errorMessage', 'Previous error')
             ->set('name', 'New Organization')
             ->call('createOrganization')
@@ -200,25 +200,25 @@ describe('CreateOrganization Livewire Component Rate Limiting', function () {
     });
 });
 
-describe('CreateOrganization Livewire Component Error Handling', function () {
+describe('Create Livewire Component Error Handling', function () {
     it('shows error when user is not authenticated', function () {
         Auth::logout();
 
-        Livewire::test(CreateOrganization::class)
+        Livewire::test(Create::class)
             ->set('name', 'New Organization')
             ->call('createOrganization')
             ->assertSet('errorMessage', 'You must be logged in to create an organization.');
     });
 
     it('shows error message on validation failure', function () {
-        Livewire::test(CreateOrganization::class)
+        Livewire::test(Create::class)
             ->set('name', '')
             ->call('createOrganization')
             ->assertSet('errorMessage', 'Please correct the validation errors below.');
     });
 
     it('renders correct view', function () {
-        Livewire::test(CreateOrganization::class)
+        Livewire::test(Create::class)
             ->assertViewIs('org::livewire.create-organization-form');
     });
 
@@ -226,23 +226,23 @@ describe('CreateOrganization Livewire Component Error Handling', function () {
         // Create a duplicate organization to trigger validation error
         OrganizationFactory::new()->ownedBy($this->user)->create(['name' => 'Duplicate Org']);
 
-        Livewire::test(CreateOrganization::class)
+        Livewire::test(Create::class)
             ->set('name', 'Duplicate Org')
             ->call('createOrganization')
             ->assertHasErrors('name'); // Validation catches duplicate name
     });
 });
 
-describe('CreateOrganization Livewire Component Additional Coverage', function () {
+describe('Create Livewire Component Additional Coverage', function () {
     it('clears error message when modal is opened', function () {
-        Livewire::test(CreateOrganization::class)
+        Livewire::test(Create::class)
             ->set('errorMessage', 'Previous error')
             ->call('showModal')
             ->assertSet('errorMessage', null);
     });
 
     it('validates organization name format', function () {
-        Livewire::test(CreateOrganization::class)
+        Livewire::test(Create::class)
             ->set('name', 'Valid Organization Name')
             ->set('description', 'Test description')
             ->call('createOrganization')
@@ -263,7 +263,7 @@ describe('CreateOrganization Livewire Component Additional Coverage', function (
             RateLimiter::hit($rateLimitKey, 60 * 60);
         }
 
-        $component = Livewire::test(CreateOrganization::class)
+        $component = Livewire::test(Create::class)
             ->set('name', 'New Organization')
             ->call('createOrganization');
 
@@ -273,7 +273,7 @@ describe('CreateOrganization Livewire Component Additional Coverage', function (
     it('does not create organization when validation fails', function () {
         $initialCount = \CleaniqueCoders\LaravelOrganization\Models\Organization::count();
 
-        Livewire::test(CreateOrganization::class)
+        Livewire::test(Create::class)
             ->set('name', 'A') // Too short
             ->call('createOrganization')
             ->assertHasErrors('name');
@@ -283,9 +283,9 @@ describe('CreateOrganization Livewire Component Additional Coverage', function (
     });
 });
 
-describe('CreateOrganization Livewire Component Properties', function () {
+describe('Create Livewire Component Properties', function () {
     it('has default property values', function () {
-        Livewire::test(CreateOrganization::class)
+        Livewire::test(Create::class)
             ->assertSet('showModal', false)
             ->assertSet('name', '')
             ->assertSet('description', '')
@@ -294,19 +294,19 @@ describe('CreateOrganization Livewire Component Properties', function () {
     });
 
     it('can update name property', function () {
-        Livewire::test(CreateOrganization::class)
+        Livewire::test(Create::class)
             ->set('name', 'Test Organization')
             ->assertSet('name', 'Test Organization');
     });
 
     it('can update description property', function () {
-        Livewire::test(CreateOrganization::class)
+        Livewire::test(Create::class)
             ->set('description', 'Test Description')
             ->assertSet('description', 'Test Description');
     });
 
     it('can update setAsCurrent property', function () {
-        Livewire::test(CreateOrganization::class)
+        Livewire::test(Create::class)
             ->set('setAsCurrent', true)
             ->assertSet('setAsCurrent', true);
     });

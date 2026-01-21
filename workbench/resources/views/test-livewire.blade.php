@@ -21,7 +21,7 @@
             <!-- Organization List -->
             <div class="bg-white rounded-lg shadow-md p-6">
                 <h2 class="text-xl font-semibold mb-4">Organizations List</h2>
-                @livewire('org::list')
+                @livewire('org::listing')
             </div>
 
             <!-- Organization Switcher -->

@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
-class OrganizationSwitcher extends Component
+class Switcher extends Component
 {
     public ?Authenticatable $user = null;
 

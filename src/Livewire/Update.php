@@ -13,7 +13,7 @@ use Illuminate\Validation\Rule;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
-class UpdateOrganization extends Component
+class Update extends Component
 {
     public ?Organization $organization = null;
 

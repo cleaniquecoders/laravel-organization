@@ -11,12 +11,12 @@ use CleaniqueCoders\LaravelOrganization\Contracts\OrganizationOwnershipContract;
 use CleaniqueCoders\LaravelOrganization\Contracts\OrganizationSettingsContract;
 use CleaniqueCoders\LaravelOrganization\Events\InvitationSent;
 use CleaniqueCoders\LaravelOrganization\Listeners\SendInvitationEmail;
-use CleaniqueCoders\LaravelOrganization\Livewire\CreateOrganization;
+use CleaniqueCoders\LaravelOrganization\Livewire\Create;
 use CleaniqueCoders\LaravelOrganization\Livewire\InvitationManager;
-use CleaniqueCoders\LaravelOrganization\Livewire\OrganizationList;
-use CleaniqueCoders\LaravelOrganization\Livewire\OrganizationSwitcher;
+use CleaniqueCoders\LaravelOrganization\Livewire\Listing;
+use CleaniqueCoders\LaravelOrganization\Livewire\Switcher;
 use CleaniqueCoders\LaravelOrganization\Livewire\TransferOwnership;
-use CleaniqueCoders\LaravelOrganization\Livewire\UpdateOrganization;
+use CleaniqueCoders\LaravelOrganization\Livewire\Update;
 use CleaniqueCoders\LaravelOrganization\Models\Organization;
 use CleaniqueCoders\LaravelOrganization\Policies\OrganizationPolicy;
 use Illuminate\Support\Facades\Event;
@@ -71,46 +71,41 @@ class LaravelOrganizationServiceProvider extends PackageServiceProvider
     }
 
     /**
-     * Register Livewire components with version-aware registration.
+     * Register Livewire components.
      *
-     * Livewire 4 changed how namespaced components (using ::) are resolved.
-     * In v4, namespaced components only check classNamespaces, not classComponents.
-     * This method uses the appropriate registration method for each version.
+     * Livewire 4: Uses addNamespace() - components resolved by kebab-case class names
+     * Livewire 3: Uses individual component() registration
+     *
+     * Available components:
+     * - org::switcher
+     * - org::listing (note: 'list' is PHP reserved word)
+     * - org::create
+     * - org::update
+     * - org::invitation-manager
+     * - org::transfer-ownership
      */
     protected function registerLivewireComponents(): void
     {
         if ($this->isLivewire4()) {
-            // Livewire 4: Use addNamespace with full class namespace
-            // Components will be named based on their class names in kebab-case
-            // e.g., OrganizationSwitcher -> org::organization-switcher
+            // Livewire 4: Register by namespace - uses alias classes for short names
             Livewire::addNamespace('org', classNamespace: 'CleaniqueCoders\\LaravelOrganization\\Livewire');
-
-            // Also register aliases for backward compatibility with short names
-            // These map the old short names to the new kebab-case names
-            Livewire::component('org.switcher', OrganizationSwitcher::class);
-            Livewire::component('org.create', CreateOrganization::class);
-            Livewire::component('org.update', UpdateOrganization::class);
-            Livewire::component('org.list', OrganizationList::class);
-            Livewire::component('org.invitation-manager', InvitationManager::class);
-            Livewire::component('org.transfer-ownership', TransferOwnership::class);
         } else {
-            // Livewire 3: Register components individually with custom names
-            Livewire::component('org::switcher', OrganizationSwitcher::class);
-            Livewire::component('org::create', CreateOrganization::class);
-            Livewire::component('org::update', UpdateOrganization::class);
-            Livewire::component('org::list', OrganizationList::class);
+            // Livewire 3: Register individually
+            Livewire::component('org::switcher', Switcher::class);
+            Livewire::component('org::listing', Listing::class);
+            Livewire::component('org::create', Create::class);
+            Livewire::component('org::update', Update::class);
             Livewire::component('org::invitation-manager', InvitationManager::class);
             Livewire::component('org::transfer-ownership', TransferOwnership::class);
         }
     }
 
     /**
-     * Determine if Livewire 4 is being used.
+     * Check if Livewire 4 is being used.
      */
     protected function isLivewire4(): bool
     {
-        return property_exists(\Livewire\LivewireManager::class, 'v4')
-            && \Livewire\LivewireManager::$v4 === true;
+        return method_exists(Livewire::getFacadeRoot(), 'addNamespace');
     }
 
     public function packageBooted(): void

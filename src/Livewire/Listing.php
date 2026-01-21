@@ -15,7 +15,7 @@ use Livewire\WithPagination;
 /**
  * @property \Illuminate\Contracts\Pagination\LengthAwarePaginator $organizations
  */
-class OrganizationList extends Component
+class Listing extends Component
 {
     use WithPagination;
 

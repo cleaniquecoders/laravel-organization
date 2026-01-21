@@ -11,7 +11,7 @@ use Illuminate\Validation\Rule;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
-class CreateOrganization extends Component
+class Create extends Component
 {
     public bool $showModal = false;
 

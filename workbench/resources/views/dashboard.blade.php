@@ -47,7 +47,7 @@
 
     <div class="max-w-7xl mx-auto sm:px-6 mt-4 lg:px-8 space-y-4">
         <!-- Organization Display & Management -->
-        @livewire('org::list')
+        @livewire('org::listing')
 
         <!-- Organization Display & Management -->
         {{-- @livewire('org::widget') --}}

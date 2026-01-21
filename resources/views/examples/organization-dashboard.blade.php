@@ -70,7 +70,7 @@
                 <div class="px-4 py-6 sm:px-0">
                     <!-- Organization List Component -->
                     <div class="mb-8">
-                        <livewire:org::list />
+                        <livewire:org::listing />
                     </div>
                 </div>
             @endauth
