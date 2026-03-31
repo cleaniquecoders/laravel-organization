@@ -2,6 +2,24 @@
 
 All notable changes to `laravel-organization` will be documented in this file.
 
+## 1.4.0 - 2026-03-31
+
+### What's Changed
+
+#### Added
+
+- Laravel 13 support (illuminate constraints include `^13.0`)
+- PHPUnit 12 compatibility
+- Pest 4 support
+
+#### Changed
+
+- Updated `phpunit.xml.dist` for PHPUnit 12
+- Standardized CI workflow (Laravel 12 + PHP 8.4/8.3)
+- Updated dev dependencies (larastan, phpstan plugins, collision)
+
+**Full Changelog**: https://github.com/cleaniquecoders/laravel-organization/compare/1.3.1...1.4.0
+
 ## Update documentation link - 2026-02-26
 
 ### What's Changed
@@ -45,6 +63,7 @@ Refactored Livewire components with simplified naming convention for better cons
 <livewire:org::update :organization="$organization" />
 <livewire:org::listing />
 <livewire:org::switcher />
+
 
 
 ```
@@ -357,7 +376,6 @@ acceptInvitation($uuid);
 declineInvitation($uuid);
 ```
 ### Changed
-
 - Service provider (`LaravelOrganizationServiceProvider`) now:
   
   - Registers `OrganizationPolicy` via Gate.
@@ -412,6 +430,9 @@ declineInvitation($uuid);
   
   
   
+  
+  
+  ```
 
 ```
 - If you already extended your own policy, ensure merging the newly added abilities.
@@ -438,6 +459,7 @@ php artisan migrate
 
 
 
+
 ```
 ### Snippets
 
@@ -452,6 +474,7 @@ if (Gate::allows('update', $organization)) {
 
 
 
+
 ```
 Listening to an event:
 
@@ -459,6 +482,7 @@ Listening to an event:
 Event::listen(\CleaniqueCoders\LaravelOrganization\Events\OrganizationCreated::class, function ($event) {
     // custom audit log
 });
+
 
 
 
@@ -479,6 +503,7 @@ Rate limit config fragment (`config/organization.php`):
 
 
 
+
 ```
 ## Fixed Recursion - 2025-10-10
 
@@ -491,6 +516,7 @@ When users registered and received email verification, the application would han
 ```
 PHP Fatal error: Allowed memory size of 2147483648 bytes exhausted (tried to allocate 12288 bytes)
 in vendor/laravel/framework/src/Illuminate/Database/Eloquent/SoftDeletingScope.php on line 121
+
 
 
 
@@ -552,6 +578,7 @@ public function apply(Builder $builder, Model $model)
 
 
 
+
 ```
 ###### After (Fixed):
 
@@ -580,6 +607,7 @@ protected function getCurrentOrganizationId(): ?int
 
     return null;
 }
+
 
 
 
@@ -672,7 +700,6 @@ Complete documentation added for:
 ## Update gitignore to include docs/ directory - 2025-10-10
 **Full Changelog**: https://github.com/cleaniquecoders/laravel-organization/compare/1.0.2...1.0.3
 ## Fix migration import models to use config - 2025-10-10
-
 **Full Changelog**: https://github.com/cleaniquecoders/laravel-organization/compare/1.0.1...1.0.2
 
 ## Fix migration - 2025-10-10
@@ -709,6 +736,7 @@ php artisan migrate
 
 
 
+
 ```
 ### 🚀 Quick Usage
 
@@ -721,6 +749,7 @@ $org->addUser($member, OrganizationRole::MEMBER);
 class Post extends Model {
     use InteractsWithOrganization;
 }
+
 
 
 
